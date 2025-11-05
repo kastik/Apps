@@ -1,10 +1,10 @@
-package com.kastik.appsaboard.data.datasource.remote.dto
+package com.kastik.appsaboard.data.datasource.remote.dto.apps
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AuthTokenDto(
+data class AppsAuthTokenDto(
     @SerialName("access_token") val accessToken: String,
     @SerialName("user") val userId: String,
     @SerialName("refresh_token") val refreshToken: String? = null

@@ -3,11 +3,13 @@ package com.kastik.appsaboard.di
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.kastik.appsaboard.data.datasource.local.AuthenticationLocalDataSource
-import com.kastik.appsaboard.data.datasource.remote.api.AuthApiClient
+import com.kastik.appsaboard.data.datasource.remote.api.AboardApiClient
+import com.kastik.appsaboard.data.datasource.remote.api.AppsApiClient
 import com.kastik.appsaboard.data.datasource.remote.source.AuthenticationRemoteDataSource
 import com.kastik.appsaboard.data.repository.AuthenticationRepositoryImpl
 import com.kastik.appsaboard.domain.repository.AuthenticationRepository
-import com.kastik.appsaboard.domain.usecases.ExchangeCodeForTokenUseCase
+import com.kastik.appsaboard.domain.usecases.ExchangeCodeForAboardTokenUseCase
+import com.kastik.appsaboard.domain.usecases.ExchangeCodeForAppsTokenUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,14 +25,16 @@ object AuthenticationModule {
 
     @Provides
     @Singleton
-    fun provideAuthenticationApi(@AuthRetrofit retrofit: Retrofit): AuthApiClient =
-        retrofit.create(AuthApiClient::class.java)
+    fun provideAuthenticationApi(@AuthRetrofit retrofit: Retrofit): AppsApiClient =
+        retrofit.create(AppsApiClient::class.java)
 
     @Provides
     @Singleton
     fun provideAuthenticationRemoteDataSource(
-        api: AuthApiClient
-    ): AuthenticationRemoteDataSource = AuthenticationRemoteDataSource(api)
+        appsApiClient: AppsApiClient,
+        aboardApiClient: AboardApiClient
+    ): AuthenticationRemoteDataSource =
+        AuthenticationRemoteDataSource(appsApiClient, aboardApiClient)
 
     @Provides
     @Singleton
@@ -52,7 +56,14 @@ object AuthenticationUseCaseModule {
 
     @Provides
     @ViewModelScoped
-    fun provideRequestAccessTokenUseCase(
+    fun provideRequestAppsAccessTokenUseCase(
         repository: AuthenticationRepository
-    ): ExchangeCodeForTokenUseCase = ExchangeCodeForTokenUseCase(repository)
+    ): ExchangeCodeForAppsTokenUseCase = ExchangeCodeForAppsTokenUseCase(repository)
+
+
+    @Provides
+    @ViewModelScoped
+    fun provideRequestAboardAccessTokenUseCase(
+        repository: AuthenticationRepository
+    ): ExchangeCodeForAboardTokenUseCase = ExchangeCodeForAboardTokenUseCase(repository)
 }

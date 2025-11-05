@@ -1,7 +1,6 @@
-package com.kastik.appsaboard.domain.models
+package com.kastik.appsaboard.domain.models.apps
 
-
-data class AuthToken(
+data class AppsToken(
     val accessToken: String,
     val refreshToken: String?,
     val userId: String
