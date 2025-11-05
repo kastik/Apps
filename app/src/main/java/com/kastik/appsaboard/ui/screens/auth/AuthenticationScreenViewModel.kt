@@ -5,14 +5,14 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kastik.appsaboard.domain.usecases.ExchangeCodeForTokenUseCase
+import com.kastik.appsaboard.domain.usecases.ExchangeCodeForAboardTokenUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthenticationScreenViewModel @Inject constructor(
-    private val exchangeCodeForToken: ExchangeCodeForTokenUseCase
+    private val exchangeCodeForToken: ExchangeCodeForAboardTokenUseCase
 ) : ViewModel() {
 
     private val _uiState: MutableState<UiState> = mutableStateOf(UiState.Loading)

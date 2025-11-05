@@ -1,15 +1,13 @@
 package com.kastik.appsaboard.data.datasource.remote.source
 
-import com.kastik.appsaboard.data.datasource.remote.api.ItApiClient
-import com.kastik.appsaboard.data.datasource.remote.dto.AnnouncementDto
+import com.kastik.appsaboard.data.datasource.remote.api.AboardApiClient
+import com.kastik.appsaboard.data.datasource.remote.dto.aboard.AnnouncementDto
 
 class AnnouncementRemoteDataSource(
-    private val apiService: ItApiClient
+    private val apiService: AboardApiClient
 ) {
 
     suspend fun fetchAnnouncements(): List<AnnouncementDto> =
-        apiService.getPublicAnnouncements()
+        apiService.getAnnouncements().data
 
-    suspend fun fetchAllAnnouncements(): List<AnnouncementDto> =
-        apiService.getAllAnnouncements()
 }

@@ -2,7 +2,6 @@
 package com.kastik.appsaboard.di
 
 import com.kastik.appsaboard.data.datasource.remote.interceptor.TokenInterceptor
-import com.kastik.appsaboard.domain.repository.AuthenticationRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,22 +35,24 @@ object NetworkModule {
         val logger = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
 
         return OkHttpClient.Builder()
-            .addInterceptor(logger)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(logger)
             .build()
     }
 
     @Provides
     @Singleton
     @AnnOkHttp
-    fun provideAnnOkHttp(authRepo: AuthenticationRepository): OkHttpClient {
+    fun provideAnnOkHttp(
+        tokenInterceptor: TokenInterceptor
+    ): OkHttpClient {
         val logger = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
         return OkHttpClient.Builder()
-            .addInterceptor(logger)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
-            .addInterceptor(TokenInterceptor(authRepo))
+            .addInterceptor(tokenInterceptor)
+            .addInterceptor(logger)
             .build()
     }
 
@@ -80,7 +81,7 @@ object NetworkModule {
     ): Retrofit {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
-            .baseUrl("https://api.it.teithe.gr/")
+            .baseUrl("https://aboard.iee.ihu.gr/api/v2/")
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(json.asConverterFactory(contentType))
             .client(client)

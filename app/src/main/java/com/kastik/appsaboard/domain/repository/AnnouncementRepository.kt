@@ -1,8 +1,7 @@
 package com.kastik.appsaboard.domain.repository
 
-import com.kastik.appsaboard.domain.models.Announcement
+import com.kastik.appsaboard.domain.models.aboard.Announcement
 
 interface AnnouncementRepository {
-    suspend fun getPublicAnnouncements(): List<Announcement>
-    suspend fun getAllAnnouncements(): List<Announcement>
+    suspend fun getAnnouncements(): List<Announcement>
 }

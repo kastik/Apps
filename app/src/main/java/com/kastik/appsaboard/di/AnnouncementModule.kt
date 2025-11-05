@@ -1,11 +1,10 @@
 package com.kastik.appsaboard.di
 
-import com.kastik.appsaboard.data.datasource.remote.api.ItApiClient
+import com.kastik.appsaboard.data.datasource.remote.api.AboardApiClient
 import com.kastik.appsaboard.data.datasource.remote.source.AnnouncementRemoteDataSource
 import com.kastik.appsaboard.data.repository.AnnouncementRepoImpl
 import com.kastik.appsaboard.domain.repository.AnnouncementRepository
-import com.kastik.appsaboard.domain.usecases.GetAllAnnouncementsUseCase
-import com.kastik.appsaboard.domain.usecases.GetPublicAnnouncementsUseCase
+import com.kastik.appsaboard.domain.usecases.GetAnnouncementsUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,13 +20,13 @@ object AnnouncementNetworkModule {
 
     @Provides
     @Singleton
-    fun provideAnnouncementApi(@AnnRetrofit retrofit: Retrofit): ItApiClient =
-        retrofit.create(ItApiClient::class.java)
+    fun provideAnnouncementApi(@AnnRetrofit retrofit: Retrofit): AboardApiClient =
+        retrofit.create(AboardApiClient::class.java)
 
     @Provides
     @Singleton
     fun provideAnnouncementRemoteDataSource(
-        api: ItApiClient
+        api: AboardApiClient
     ): AnnouncementRemoteDataSource = AnnouncementRemoteDataSource(api)
 
     @Provides
@@ -45,12 +44,6 @@ object AnnouncementUseCaseModule {
     @ViewModelScoped
     fun provideGetPublicAnnouncementsUseCase(
         announcementRepository: AnnouncementRepository,
-    ): GetPublicAnnouncementsUseCase = GetPublicAnnouncementsUseCase(announcementRepository)
+    ): GetAnnouncementsUseCase = GetAnnouncementsUseCase(announcementRepository)
 
-
-    @Provides
-    @ViewModelScoped
-    fun provideGetAllAnnouncementsUseCase(
-        announcementRepository: AnnouncementRepository,
-    ): GetAllAnnouncementsUseCase = GetAllAnnouncementsUseCase(announcementRepository)
 }

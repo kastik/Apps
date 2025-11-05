@@ -13,19 +13,28 @@ class AuthenticationLocalDataSource(
     private val dataStore: DataStore<Preferences>
 ) {
     companion object {
-        val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
-        val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh_token")
+        val APPS_ACCESS_TOKEN_KEY = stringPreferencesKey("apps_access_token")
+        val APPS_REFRESH_TOKEN_KEY = stringPreferencesKey("apps_refresh_token")
+        val ABOARD_ACCESS_TOKEN_KEY = stringPreferencesKey("aboard_refresh_token")
     }
 
-    suspend fun saveTokens(accessToken: String, refreshToken: String?) {
+    suspend fun saveAppsTokens(accessToken: String, refreshToken: String?) {
         Log.d("MyLog", "Saving tokens")
         dataStore.edit {
-            it[ACCESS_TOKEN_KEY] = accessToken
-            refreshToken?.let { token -> it[REFRESH_TOKEN_KEY] = token }
+            it[APPS_ACCESS_TOKEN_KEY] = accessToken
+            refreshToken?.let { token -> it[APPS_REFRESH_TOKEN_KEY] = token }
         }
     }
 
-    suspend fun getAccessToken(): String? =
-        dataStore.data.map { it[ACCESS_TOKEN_KEY] }.first()
+    suspend fun getAppsAccessToken(): String? =
+        dataStore.data.map { it[APPS_ACCESS_TOKEN_KEY] }.first()
 
+    suspend fun saveAboardToken(accessToken: String) {
+        dataStore.edit {
+            it[ABOARD_ACCESS_TOKEN_KEY] = accessToken
+        }
+    }
+
+    suspend fun getAboardAccessToken(): String? =
+        dataStore.data.map { it[ABOARD_ACCESS_TOKEN_KEY] }.first()
 }
