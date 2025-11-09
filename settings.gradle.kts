@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -21,3 +22,13 @@ dependencyResolutionManagement {
 
 rootProject.name = "AppsAboard"
 include(":app")
+include(":core:data")
+include(":core:domain")
+include(":core:datastore")
+include(":core:database")
+include(":core:network")
+include(":feature:home")
+include(":feature:auth")
+include(":feature:announcement")
+include(":feature:settings")
+include(":core:model")
