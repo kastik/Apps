@@ -13,3 +13,14 @@
 .externalNativeBuild
 .cxx
 local.properties
+.idea/
+/core/data/build/
+/core/database/build/
+/core/datastore/build/
+/core/domain/build/
+/core/network/build/
+/feature/announcement/build/
+/feature/auth/build/
+/feature/home/build/
+/feature/settings/build/
+/core/model/build/
