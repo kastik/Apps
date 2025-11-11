@@ -8,8 +8,9 @@ import androidx.paging.map
 import com.kastik.data.mappers.toDomain
 import com.kastik.data.mediator.AnnouncementRemoteMediator
 import com.kastik.database.db.AppDatabase
-import com.kastik.model.aboard.Announcement
 import com.kastik.model.aboard.AnnouncementAuthor
+import com.kastik.model.aboard.AnnouncementPreview
+import com.kastik.model.aboard.AnnouncementView
 import com.kastik.network.datasource.AnnouncementRemoteDataSource
 import com.kastik.repository.AnnouncementRepository
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +23,7 @@ class AnnouncementRepoImpl(
 
     @OptIn(ExperimentalPagingApi::class)
     //TODO This breaks clean architecture
-    override fun getPagedAnnouncements(): Flow<PagingData<Announcement>> =
+    override fun getPagedAnnouncements(): Flow<PagingData<AnnouncementPreview>> =
         Pager(
             config = PagingConfig(
                 pageSize = 20,
@@ -31,12 +32,12 @@ class AnnouncementRepoImpl(
                 enablePlaceholders = true
             ),
             remoteMediator = AnnouncementRemoteMediator(remote = remoteDataSource, db = db),
-            pagingSourceFactory = { db.announcementDao().pagingSourceWithRelations() }
+            pagingSourceFactory = { db.announcementDao().getPagingAnnouncementPreviews() }
         ).flow.map { pagingData ->
-            pagingData.map { it.toDomain() } //TODO Map it to a UI only type
+            pagingData.map { it.toDomain() }
         }
 
-    override suspend fun getAnnouncementWithId(id: Int): Announcement {
+    override suspend fun getAnnouncementWithId(id: Int): AnnouncementView {
         return db.announcementDao().getAnnouncementWithId(id).toDomain()
     }
 

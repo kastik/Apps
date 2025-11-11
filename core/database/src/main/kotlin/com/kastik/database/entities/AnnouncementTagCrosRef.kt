@@ -4,29 +4,30 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.Index
-import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "announcement_attachments",
+    tableName = "announcement_tag_cross_ref",
+    primaryKeys = ["announcementId", "tagId"],
     foreignKeys = [
         ForeignKey(
             entity = AnnouncementEntity::class,
             parentColumns = ["id"],
             childColumns = ["announcementId"],
             onDelete = CASCADE
+        ),
+        ForeignKey(
+            entity = AnnouncementTagEntity::class,
+            parentColumns = ["tagId"],
+            childColumns = ["tagId"],
+            onDelete = CASCADE
         )
     ],
     indices = [
-        Index("id"),
         Index("announcementId"),
+        Index("tagId")
     ]
 )
-data class AnnouncementAttachmentEntity(
-    @PrimaryKey val id: Int,
+data class AnnouncementTagCrossRef(
     val announcementId: Int,
-    val filename: String,
-    val filesize: Long,
-    val mimetype: String,
-    val attachment_url: String,
-    val attachment_url_view: String,
+    val tagId: Int
 )

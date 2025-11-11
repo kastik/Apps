@@ -1,26 +1,28 @@
 package com.kastik.database.dao
 
+import AnnouncementPreviewDatabaseView
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import com.kastik.database.entities.AnnouncementAttachmentEntity
 import com.kastik.database.entities.AnnouncementAuthorEntity
 import com.kastik.database.entities.AnnouncementEntity
 import com.kastik.database.entities.AnnouncementTagCrossRef
 import com.kastik.database.entities.AnnouncementTagEntity
-import com.kastik.database.entities.AnnouncementWithRelations
+import com.kastik.database.views.AnnouncementDatabaseView
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AnnouncementDao {
 
-    @Query("SELECT * FROM announcements ORDER BY id DESC")
-    fun pagingSourceWithRelations(): PagingSource<Int, AnnouncementWithRelations>
+    @Query("SELECT * FROM announcementpreviewdatabaseview")
+    fun getPagingAnnouncementPreviews(): PagingSource<Int, AnnouncementPreviewDatabaseView>
 
-    @Query("SELECT * FROM announcements WHERE id = :id")
-    suspend fun getAnnouncementWithId(id: Int): AnnouncementWithRelations
+    @Query("SELECT * FROM announcementdatabaseview WHERE announcementId = :id")
+    suspend fun getAnnouncementWithId(id: Int): AnnouncementDatabaseView
 
 
     @Query("SELECT * FROM announcement_authors")
@@ -57,4 +59,13 @@ interface AnnouncementDao {
 
     @Query("DELETE FROM announcement_tag_cross_ref")
     suspend fun clearTagCrossRefs()
+
+    @Transaction
+    suspend fun clearDatabase() {
+        clearAllAnnouncements()
+        clearAttachments()
+        clearTags()
+        clearAuthors()
+        clearTagCrossRefs()
+    }
 }

@@ -11,12 +11,3 @@ data class AnnouncementTagEntity(
     val isPublic: Boolean,
     val maillist_name: String?
 )
-
-@Entity(
-    tableName = "announcement_tag_cross_ref",
-    primaryKeys = ["announcementId", "tagId"]
-)
-data class AnnouncementTagCrossRef(
-    val announcementId: Int,
-    val tagId: Int
-)

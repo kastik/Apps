@@ -1,33 +1,21 @@
 package com.kastik.model.aboard
 
-data class Announcement(
+data class AnnouncementPreview(
     val id: Int,
-
-
     val title: String,
-    val engTitle: String? = null,
-    val body: String,
-    val engBody: String? = null,
-    val preview: String? = null,
-    val engPreview: String? = null,
-    val hasEng: Boolean? = null,
+    val preview: String?,
+    val author: String,
+    val tags: List<String> = emptyList(),
+    val attachments: List<String> = emptyList(),
+    val date: String
+)
 
-
-    val createdAt: String,
-    val updatedAt: String,
-
-    val isPinned: Boolean,
-    val pinnedUntil: String? = null,
-
-    val isEvent: Boolean? = null,
-    val eventStartTime: String? = null,
-    val eventEndTime: String? = null,
-    val eventLocation: String? = null,
-    val gmaps: String? = null,
-
-    val tags: List<AnnouncementTag> = emptyList(),
-    val attachments: List<AnnouncementAttachment> = emptyList(),
-    val author: AnnouncementAuthor,
-
-    val announcementUrl: String
+data class AnnouncementView(
+    val id: Int,
+    val title: String,
+    val author: String,
+    val tags: List<String> = emptyList(),
+    val attachments: List<String> = emptyList(),
+    val date: String,
+    val body: String
 )

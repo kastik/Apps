@@ -1,5 +1,6 @@
 package com.kastik.data.mediator
 
+import AnnouncementPreviewDatabaseView
 import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
@@ -12,15 +13,15 @@ import com.kastik.data.mappers.toEntity
 import com.kastik.data.mappers.toTagCrossRefs
 import com.kastik.data.mappers.toTagEntities
 import com.kastik.database.db.AppDatabase
-import com.kastik.database.entities.AnnouncementWithRelations
 import com.kastik.network.datasource.AnnouncementRemoteDataSource
+import java.net.UnknownHostException
 
 @OptIn(ExperimentalPagingApi::class)
 class AnnouncementRemoteMediator(
     private val remote: AnnouncementRemoteDataSource,
     private val query: String? = null,
     private val db: AppDatabase
-) : RemoteMediator<Int, AnnouncementWithRelations>() {
+) : RemoteMediator<Int, AnnouncementPreviewDatabaseView>() {
 
     private val announcementDao = db.announcementDao()
 
@@ -32,7 +33,7 @@ class AnnouncementRemoteMediator(
     private var lastPage = Int.MAX_VALUE
 
     override suspend fun load(
-        loadType: LoadType, state: PagingState<Int, AnnouncementWithRelations>
+        loadType: LoadType, state: PagingState<Int, AnnouncementPreviewDatabaseView>
     ): MediatorResult {
 
         val page = when (loadType) {
@@ -56,29 +57,33 @@ class AnnouncementRemoteMediator(
             val newLastPage = response.meta.lastPage
 
             db.withTransaction {
-
                 if (loadType == LoadType.REFRESH) {
-                    announcementDao.clearTags()
-                    announcementDao.clearAuthors()
-                    announcementDao.clearAttachments()
-                    announcementDao.clearTagCrossRefs()
-                    announcementDao.clearAllAnnouncements()
+                    db.clearAllTables()
                 }
 
                 response.data.forEach { dto ->
-                    announcementDao.insertAnnouncement(dto.toEntity())
                     announcementDao.insertAuthor(dto.toAuthorEntity())
-                    announcementDao.insertAttachments(dto.toAttachmentEntities())
+                    announcementDao.insertAnnouncement(dto.toEntity())
                     announcementDao.insertTags(dto.toTagEntities())
                     announcementDao.insertTagCrossRefs(dto.toTagCrossRefs())
+                    announcementDao.insertAttachments(dto.toAttachmentEntities())
                 }
             }
             currentPage = newCurrentPage
             lastPage = newLastPage
             return MediatorResult.Success(endOfPaginationReached = currentPage >= lastPage)
 
+        } catch (e: UnknownHostException) {
+            Log.d(
+                "MyLog",
+                "Mediator error $e, StackTrace ${e.stackTrace}, message ${e.message}, cause ${e.cause}"
+            )
+            return MediatorResult.Error(e)
         } catch (e: Exception) {
-            Log.d("MyLog", "Mediator error $e")
+            Log.d(
+                "MyLog",
+                "Mediator error $e, StackTrace ${e.stackTrace}, message ${e.message}, cause ${e.cause}"
+            )
             return MediatorResult.Error(e)
         }
     }

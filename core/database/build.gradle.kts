@@ -1,9 +1,15 @@
 plugins {
     alias(libs.plugins.kastik.library)
     alias(libs.plugins.kastik.hilt)
+    alias(libs.plugins.room)
 }
 android {
     namespace = "com.kastik.apps.database"
+
+    room {
+        schemaDirectory("$projectDir/schemas")
+    }
+
 }
 
 

@@ -1,38 +1,7 @@
 package com.kastik.database.entities
 
-import androidx.room.Embedded
 import androidx.room.Entity
-import androidx.room.Junction
 import androidx.room.PrimaryKey
-import androidx.room.Relation
-
-
-data class AnnouncementWithRelations(
-    @Embedded val announcement: AnnouncementEntity,
-
-    @Relation(
-        parentColumn = "authorId",
-        entityColumn = "id"
-    )
-    val author: AnnouncementAuthorEntity,
-
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "announcementId"
-    )
-    val attachments: List<AnnouncementAttachmentEntity>,
-
-    @Relation(
-        parentColumn = "id",
-        entityColumn = "tagId",
-        associateBy = Junction(
-            value = AnnouncementTagCrossRef::class,
-            parentColumn = "announcementId",
-            entityColumn = "tagId"
-        )
-    )
-    val tags: List<AnnouncementTagEntity>
-)
 
 
 @Entity(tableName = "announcements")
