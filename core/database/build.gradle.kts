@@ -14,6 +14,7 @@ android {
 
 
 dependencies {
+    testImplementation(project(":core:domain"))
     testImplementation(project(":core:testing"))
 
 

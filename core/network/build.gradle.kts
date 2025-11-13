@@ -9,6 +9,9 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:domain"))
+    implementation(project(":core:model"))
+    //implementation(project(":core:data"))
     implementation(project(":core:datastore"))
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.scalars)

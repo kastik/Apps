@@ -3,6 +3,7 @@ package com.kastik.di
 import com.kastik.network.api.AboardApiClient
 import com.kastik.network.api.AppsApiClient
 import com.kastik.network.datasource.AuthenticationRemoteDataSource
+import com.kastik.network.datasource.AuthenticationRemoteDataSourceImpl
 import com.kastik.network.interceptor.TokenInterceptor
 import dagger.Module
 import dagger.Provides
@@ -108,5 +109,5 @@ object NetworkModule {
         appsApiClient: AppsApiClient,
         aboardApiClient: AboardApiClient
     ): AuthenticationRemoteDataSource =
-        AuthenticationRemoteDataSource(appsApiClient, aboardApiClient)
+        AuthenticationRemoteDataSourceImpl(appsApiClient, aboardApiClient)
 }

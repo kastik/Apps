@@ -10,6 +10,7 @@ import com.kastik.datastore.AuthenticationLocalDataSource
 import com.kastik.datastore.UserPreferencesLocalDataSource
 import com.kastik.network.api.AboardApiClient
 import com.kastik.network.datasource.AnnouncementRemoteDataSource
+import com.kastik.network.datasource.AnnouncementRemoteDataSourceImpl
 import com.kastik.network.datasource.AuthenticationRemoteDataSource
 import com.kastik.repository.AnnouncementRepository
 import com.kastik.repository.AuthenticationRepository
@@ -47,8 +48,10 @@ object DataModule {
     @Provides
     @Singleton
     fun provideAnnouncementRepository(
-        remoteDataSource: AnnouncementRemoteDataSource, database: AppDatabase
-    ): AnnouncementRepository = AnnouncementRepoImpl(remoteDataSource, database)
+        remoteDataSource: AnnouncementRemoteDataSource,
+        database: AppDatabase,
+        applicationContext: Application
+    ): AnnouncementRepository = AnnouncementRepoImpl(remoteDataSource, database, applicationContext)
 
 
     @Provides

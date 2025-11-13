@@ -11,8 +11,8 @@ import androidx.room.DatabaseView
         a.updatedAt AS date,
         a.body AS body,
 
-        COALESCE(GROUP_CONCAT(DISTINCT t.title), '') AS tags,
-        COALESCE(GROUP_CONCAT(DISTINCT att.filename), '') AS attachments
+    COALESCE(GROUP_CONCAT(DISTINCT t.tagId || '|' || t.title),'') AS tags,
+    COALESCE(GROUP_CONCAT(DISTINCT att.filename || '|' || att.id),'') AS attachments
 
     FROM announcements AS a
 
@@ -35,8 +35,8 @@ data class AnnouncementDatabaseView(
     val announcementId: Int,
     val title: String,
     val authorName: String,
-    val tags: List<String>,
-    val attachments: List<String>,
+    val tags: String,
+    val attachments: String,
     val date: String,
     val body: String
 )

@@ -6,7 +6,9 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.kastik.datastore.AuthenticationLocalDataSource
+import com.kastik.datastore.AuthenticationLocalDataSourceImpl
 import com.kastik.datastore.UserPreferencesLocalDataSource
+import com.kastik.datastore.UserPreferencesLocalDataSourceImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,13 +51,13 @@ object DataStoreModule {
     @Singleton
     fun provideAuthenticationLocalDataSource(
         @AuthPreferences dataStore: DataStore<Preferences>
-    ): AuthenticationLocalDataSource = AuthenticationLocalDataSource(dataStore)
+    ): AuthenticationLocalDataSource = AuthenticationLocalDataSourceImpl(dataStore)
 
     @Provides
     @Singleton
     fun provideUserPreferencesLocalDataSource(
         @UserPreferences dataStore: DataStore<Preferences>
-    ): UserPreferencesLocalDataSource = UserPreferencesLocalDataSource(dataStore)
+    ): UserPreferencesLocalDataSource = UserPreferencesLocalDataSourceImpl(dataStore)
 
     @Provides
     @Singleton

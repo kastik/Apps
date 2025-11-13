@@ -12,6 +12,7 @@ import com.kastik.database.entities.AnnouncementAuthorEntity
 import com.kastik.database.entities.AnnouncementEntity
 import com.kastik.database.entities.AnnouncementTagCrossRef
 import com.kastik.database.entities.AnnouncementTagEntity
+import com.kastik.database.model.AnnouncementEntityWrapper
 import com.kastik.database.views.AnnouncementDatabaseView
 import kotlinx.coroutines.flow.Flow
 
@@ -60,12 +61,22 @@ interface AnnouncementDao {
     @Query("DELETE FROM announcement_tag_cross_ref")
     suspend fun clearTagCrossRefs()
 
+
+    @Transaction
+    suspend fun addAnnouncement(
+        announcement: AnnouncementEntityWrapper
+    ) {
+        insertAnnouncement(announcement.announcement)
+        insertAuthor(announcement.author)
+        insertAttachments(announcement.attachments)
+        insertTags(announcement.tags)
+        insertTagCrossRefs(announcement.tagCrossRefs)
+    }
+
     @Transaction
     suspend fun clearDatabase() {
         clearAllAnnouncements()
         clearAttachments()
-        clearTags()
-        clearAuthors()
         clearTagCrossRefs()
     }
 }

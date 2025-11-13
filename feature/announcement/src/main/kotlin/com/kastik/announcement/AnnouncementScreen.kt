@@ -48,6 +48,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.kastik.model.aboard.AnnouncementViewAttachment
+import com.kastik.model.aboard.AnnouncementViewTag
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -71,12 +73,21 @@ fun AnnouncementScreen(
 
         is UiState.Success -> {
             AnnouncementScreenContentSuccess(
+                announcementId = announcementId,
                 title = uiState.announcement.title,
                 author = uiState.announcement.author,
                 date = uiState.announcement.date,
                 body = uiState.announcement.body,
                 tags = uiState.announcement.tags,
-                attachments = uiState.announcement.attachments
+                attachments = uiState.announcement.attachments,
+                onAttachmentClick = { attachmentId, filename ->
+                    viewModel.getAttachment(
+                        announcementId = announcementId,
+                        attachmentId = attachmentId,
+                        filename = filename,
+                        context = context
+                    )
+                }
             )
         }
     }
@@ -118,12 +129,14 @@ fun AnnouncementScreenContentError() {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AnnouncementScreenContentSuccess(
+    announcementId: Int,
     title: String,
     author: String,
     date: String,
     body: String,
-    tags: List<String>,
-    attachments: List<String>,
+    tags: List<AnnouncementViewTag>,
+    attachments: List<AnnouncementViewAttachment>,
+    onAttachmentClick: (Int, String) -> Unit,
 ) {
     val scroll = rememberScrollState()
     Scaffold(
@@ -201,7 +214,14 @@ fun AnnouncementScreenContentSuccess(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     attachments.forEach { attachment ->
-                        AssistChip(onClick = { }, label = { Text(attachment) }, leadingIcon = {
+                        AssistChip(
+                            onClick = {
+                                onAttachmentClick(
+                                    attachment.id,
+                                    attachment.filename
+                                )
+                            },
+                            label = { Text(attachment.filename) }, leadingIcon = {
                             Icon(
                                 Icons.Outlined.AttachFile,
                                 contentDescription = null,
@@ -227,7 +247,7 @@ fun AnnouncementScreenContentSuccess(
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
                     tags.forEach { tag ->
-                        FunkyTagChip(text = tag)
+                        FunkyTagChip(text = tag.title)
                     }
                 }
             }
@@ -298,12 +318,23 @@ fun FunkyTagChip(
 @Composable
 fun AnnouncementScreenContentSuccessPreview() {
     AnnouncementScreenContentSuccess(
+        announcementId = 1,
         title = "Announcement Title",
         author = "Kostas Papastathopoulos",
         date = "2/10/2025",
         body = "The body of the announcement.",
-        tags = listOf("Tag1", "Tag2", "Tag3"),
-        attachments = listOf("Attachment1.pdf", "Attachment2.pdf")
+        tags = listOf(
+            AnnouncementViewTag(id = 1, title = "Tag 1"),
+            AnnouncementViewTag(id = 2, title = "Tag 3"),
+            AnnouncementViewTag(id = 3, title = "Tag 2"),
+        ),
+        attachments = listOf(
+            AnnouncementViewAttachment(id = 1, filename = "Attachment 1"),
+            AnnouncementViewAttachment(id = 2, filename = "Attachment 2"),
+            AnnouncementViewAttachment(id = 3, filename = "Attachment 3"),
+        ),
+        onAttachmentClick = { _, _ ->
+        }
     )
 }
 
