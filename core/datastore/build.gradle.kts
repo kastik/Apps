@@ -8,5 +8,7 @@ android {
 }
 
 dependencies {
+    api(project(":core:datastore-proto"))
+    implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastore.preferences)
 }

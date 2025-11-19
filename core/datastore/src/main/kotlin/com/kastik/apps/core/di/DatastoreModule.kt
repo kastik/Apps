@@ -2,6 +2,8 @@ package com.kastik.apps.core.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.DataStoreFactory
+import androidx.datastore.dataStoreFile
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
@@ -9,6 +11,8 @@ import com.kastik.apps.core.datastore.AuthenticationLocalDataSource
 import com.kastik.apps.core.datastore.AuthenticationLocalDataSourceImpl
 import com.kastik.apps.core.datastore.UserPreferencesLocalDataSource
 import com.kastik.apps.core.datastore.UserPreferencesLocalDataSourceImpl
+import com.kastik.apps.core.datastore.proto.UserPreferences
+import com.kastik.apps.core.datastore.serializers.UserPreferencesSerializer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,7 +35,7 @@ object DataStoreModule {
 
     @Provides
     @Singleton
-    @AuthPreferences
+    @AuthDatastore
     fun provideAuthPreferencesDataStore(
         @ApplicationContext context: Context
     ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
@@ -40,23 +44,25 @@ object DataStoreModule {
 
     @Provides
     @Singleton
-    @UserPreferences
+    @UserPrefsDatastore
     fun provideUserPreferencesDataStore(
         @ApplicationContext context: Context
-    ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
-        produceFile = { context.preferencesDataStoreFile("user_prefs") }
-    )
+    ): DataStore<UserPreferences> =
+        DataStoreFactory.create(
+            serializer = UserPreferencesSerializer,
+            produceFile = { context.dataStoreFile("user_prefs.pb") }
+        )
 
     @Provides
     @Singleton
     fun provideAuthenticationLocalDataSource(
-        @AuthPreferences dataStore: DataStore<Preferences>
+        @AuthDatastore dataStore: DataStore<Preferences>
     ): AuthenticationLocalDataSource = AuthenticationLocalDataSourceImpl(dataStore)
 
     @Provides
     @Singleton
     fun provideUserPreferencesLocalDataSource(
-        @UserPreferences dataStore: DataStore<Preferences>
+        @UserPrefsDatastore dataStore: DataStore<UserPreferences>
     ): UserPreferencesLocalDataSource = UserPreferencesLocalDataSourceImpl(dataStore)
 
     @Provides

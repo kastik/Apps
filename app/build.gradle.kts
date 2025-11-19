@@ -36,6 +36,8 @@ dependencies {
     implementation(project(":feature:announcement"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:profile"))
+    implementation(project(":core:domain"))
+    implementation(project(":core:model"))
     implementation(libs.androidx.activity)
     implementation(libs.firebase.crashlytics.ndk)
     implementation(libs.firebase.performance) {

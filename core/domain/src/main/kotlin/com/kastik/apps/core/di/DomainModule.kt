@@ -8,10 +8,14 @@ import com.kastik.apps.core.domain.usecases.CheckIfUserIsAuthenticatedUseCase
 import com.kastik.apps.core.domain.usecases.ExchangeCodeForAboardTokenUseCase
 import com.kastik.apps.core.domain.usecases.ExchangeCodeForAppsTokenUseCase
 import com.kastik.apps.core.domain.usecases.GetAnnouncementWithIdUseCase
+import com.kastik.apps.core.domain.usecases.GetDynamicColorUseCase
 import com.kastik.apps.core.domain.usecases.GetPagedAnnouncementsUseCase
 import com.kastik.apps.core.domain.usecases.GetUserProfileUseCase
 import com.kastik.apps.core.domain.usecases.GetUserSubscriptionsUseCase
+import com.kastik.apps.core.domain.usecases.GetUserThemeUseCase
+import com.kastik.apps.core.domain.usecases.SetDynamicColorUseCase
 import com.kastik.apps.core.domain.usecases.SetUserHasSkippedSignInUseCase
+import com.kastik.apps.core.domain.usecases.SetUserThemeUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -83,5 +87,32 @@ object AnnouncementUseCaseModule {
     fun provideSetUserHasSkippedSignInUseCase(
         repository: UserPreferencesRepository
     ): SetUserHasSkippedSignInUseCase = SetUserHasSkippedSignInUseCase(repository)
+
+
+    @Provides
+    @ViewModelScoped
+    fun provideGetUserThemeUseCase(
+        repository: UserPreferencesRepository
+    ): GetUserThemeUseCase = GetUserThemeUseCase(repository)
+
+    @Provides
+    @ViewModelScoped
+    fun provideSetUserThemeUseCase(
+        repository: UserPreferencesRepository
+    ): SetUserThemeUseCase = SetUserThemeUseCase(repository)
+
+
+    @Provides
+    @ViewModelScoped
+    fun provideGetDynamicColorUseCase(
+        repository: UserPreferencesRepository
+    ): GetDynamicColorUseCase = GetDynamicColorUseCase(repository)
+
+    @Provides
+    @ViewModelScoped
+    fun provideSetDynamicColorUseCase(
+        repository: UserPreferencesRepository
+    ): SetDynamicColorUseCase = SetDynamicColorUseCase(repository)
+
 
 }

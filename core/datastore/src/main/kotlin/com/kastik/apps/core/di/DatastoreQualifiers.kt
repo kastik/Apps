@@ -4,8 +4,8 @@ import javax.inject.Qualifier
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class AuthPreferences
+annotation class AuthDatastore
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class UserPreferences
+annotation class UserPrefsDatastore

@@ -5,7 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.kastik.apps.core.di.AuthPreferences
+import com.kastik.apps.core.di.AuthDatastore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -30,7 +30,7 @@ interface AuthenticationLocalDataSource {
 }
 
 class AuthenticationLocalDataSourceImpl(
-    @param:AuthPreferences private val dataStore: DataStore<Preferences>
+    @param:AuthDatastore private val dataStore: DataStore<Preferences>
 ) : AuthenticationLocalDataSource {
     companion object {
         val APPS_ACCESS_TOKEN_KEY = stringPreferencesKey("apps_access_token")
