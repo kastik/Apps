@@ -2,6 +2,7 @@ package com.kastik.apps.feature.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,13 +10,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -27,12 +31,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kastik.apps.core.model.user.UserTheme
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsScreenViewModel = hiltViewModel()
@@ -40,12 +48,43 @@ fun SettingsScreen(
     LaunchedEffect(Unit) {
         viewModel.onScreenViewed()
     }
-    SettingsScreenContent()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    when (val state = uiState) {
+
+        UiState.Loading -> {
+            Box(
+                contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()
+            ) {
+                CircularWavyProgressIndicator(
+                    modifier = Modifier.size(64.dp),
+                    color = MaterialTheme.colorScheme.secondary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                )
+                Spacer(Modifier.height(12.dp))
+            }
+        }
+
+        is UiState.Success -> {
+            SettingsScreenContent(
+                theme = state.theme,
+                setTheme = viewModel::setTheme,
+                dynamicColorEnabled = state.isDynamicColorEnabled,
+                setDynamicColor = viewModel::setDynamicColor,
+            )
+        }
+
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreenContent() {
+fun SettingsScreenContent(
+    theme: UserTheme,
+    setTheme: (UserTheme) -> Unit = {},
+    dynamicColorEnabled: Boolean,
+    setDynamicColor: (Boolean) -> Unit = {},
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -78,14 +117,16 @@ fun SettingsScreenContent() {
                             Text("Theme", style = MaterialTheme.typography.bodyLarge)
                             Spacer(Modifier.height(8.dp))
                             ThemeSegmentedButton(
-                                selected = ThemeMode.SYSTEM, onSelected = { })
+                                selected = theme, onSelected = setTheme
+                            )
                         }
                         Divider()
                         SettingSwitchRow(
                             title = "Dynamic color",
                             subtitle = "Use colors from the wallpaper",
-                            checked = true,
-                            onCheckedChange = { })
+                            checked = dynamicColorEnabled,
+                            onCheckedChange = setDynamicColor
+                        )
                     }
                 }
             }
@@ -188,30 +229,30 @@ private fun SettingNavigationRow(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ThemeSegmentedButton(
-    selected: ThemeMode, onSelected: (ThemeMode) -> Unit
+    selected: UserTheme, onSelected: (UserTheme) -> Unit
 ) {
     SingleChoiceSegmentedButtonRow(
         modifier = Modifier.fillMaxWidth()
     ) {
         SegmentedButton(
-            selected = selected == ThemeMode.SYSTEM,
-            onClick = { onSelected(ThemeMode.SYSTEM) },
+            selected = selected == UserTheme.FOLLOW_SYSTEM,
+            onClick = { onSelected(UserTheme.FOLLOW_SYSTEM) },
             shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
         ) {
             Text("System")
         }
 
         SegmentedButton(
-            selected = selected == ThemeMode.LIGHT,
-            onClick = { onSelected(ThemeMode.LIGHT) },
+            selected = selected == UserTheme.LIGHT,
+            onClick = { onSelected(UserTheme.LIGHT) },
             shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
         ) {
             Text("Light")
         }
 
         SegmentedButton(
-            selected = selected == ThemeMode.DARK,
-            onClick = { onSelected(ThemeMode.DARK) },
+            selected = selected == UserTheme.DARK,
+            onClick = { onSelected(UserTheme.DARK) },
             shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
         ) {
             Text("Dark")
@@ -219,10 +260,12 @@ private fun ThemeSegmentedButton(
     }
 }
 
-enum class ThemeMode { SYSTEM, LIGHT, DARK }
-
 @Preview
 @Composable
 fun SettingsScreenPreview() {
-    SettingsScreenContent()
+    SettingsScreenContent(
+        theme = UserTheme.FOLLOW_SYSTEM,
+        setTheme = {},
+        dynamicColorEnabled = true,
+        setDynamicColor = {})
 }

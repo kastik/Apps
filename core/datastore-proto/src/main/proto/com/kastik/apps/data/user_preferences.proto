@@ -1,7 +1,15 @@
 syntax = "proto3";
-option java_package = "com.kastik.datastore.proto";
+option java_package = "com.kastik.apps.core.datastore.proto";
 option java_multiple_files = true;
 
-message UserPreference{
+message UserPreferences{
+  Theme theme = 1;
+  bool enable_dynamic_color = 2;
+  bool has_skipped_sign_in = 3;
+}
 
+enum Theme {
+  System = 0;
+  Light = 1;
+  Dark = 2;
 }
