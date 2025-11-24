@@ -12,10 +12,9 @@ android {
 
     defaultConfig {
         applicationId = "com.kastik.apps"
-        versionCode = 1
+        versionCode = 4
         versionName = "1.0"
     }
-
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
@@ -36,8 +35,10 @@ dependencies {
     implementation(project(":feature:announcement"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:profile"))
+    implementation(project(":feature:search"))
     implementation(project(":core:domain"))
     implementation(project(":core:model"))
+    implementation(project(":core:designsystem"))
     implementation(libs.androidx.activity)
     implementation(libs.firebase.crashlytics.ndk)
     implementation(libs.firebase.performance) {
