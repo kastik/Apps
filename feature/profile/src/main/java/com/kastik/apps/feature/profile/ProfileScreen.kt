@@ -54,24 +54,16 @@ fun ProfileScreen(
         viewModel.onScreenViewed()
     }
 
-    val uiState = viewModel.uiState.value
-    AnimatedContent(
-        targetState = uiState,
-    ) { state ->
-        when (state) {
-            is UiState.Loading -> ProfileScreenLoadingContent()
-            is UiState.Error -> ProfileScreenErrorContent(error = state.message)
-            is UiState.Success -> ProfileScreenSuccessContent(
-                name = state.profile.name,
-                email = state.profile.email,
-                isAdmin = state.profile.isAdmin,
-                isAuthor = state.profile.isAuthor,
-                lastLogin = state.profile.lastLoginAt,
-                createdAt = state.profile.createdAt,
-                subscribedTags = state.subscribedTag
-            )
-        }
-
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    when (val state = uiState.value) {
+        is UiState.Loading -> ProfileScreenLoadingContent()
+        is UiState.Error -> ProfileScreenErrorContent(error = state.message)
+        is UiState.Success -> ProfileScreenSuccessContent(
+            uiState = state,
+            applySelectedTags = viewModel::onApplyTags,
+            updateSelectedSubscribableTag = viewModel::updateSelectedTagIds,
+            dismissSubscribeSheet = viewModel::toggleTagsSheet
+        )
     }
 }
 
@@ -80,8 +72,7 @@ fun ProfileScreen(
 fun ProfileScreenLoadingContent() {
     Surface {
         Box(
-            Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            Modifier.fillMaxSize(), contentAlignment = Alignment.Center
         ) {
             CircularWavyProgressIndicator(
                 modifier = Modifier.size(64.dp),
@@ -96,8 +87,7 @@ fun ProfileScreenLoadingContent() {
 fun ProfileScreenErrorContent(error: String) {
     Surface {
         Box(
-            Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            Modifier.fillMaxSize(), contentAlignment = Alignment.Center
         ) {
             Text(error)
         }
@@ -108,14 +98,15 @@ fun ProfileScreenErrorContent(error: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreenSuccessContent(
-    name: String,
-    email: String,
-    isAdmin: Boolean,
-    isAuthor: Boolean,
-    lastLogin: String,
-    createdAt: String,
-    subscribedTags: List<UserSubscribedTag>
+    uiState: UiState.Success,
+    applySelectedTags: () -> Unit,
+    updateSelectedSubscribableTag: (List<Int>) -> Unit,
+    dismissSubscribeSheet: () -> Unit,
 ) {
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -132,142 +123,44 @@ fun ProfileScreenSuccessContent(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(28.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 6.dp)
-                    .size(110.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = name.take(1).uppercase(),
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-            ElevatedCard(
-                shape = MaterialTheme.shapes.extraLarge,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(name, style = MaterialTheme.typography.headlineSmall)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.Email, null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(email, style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-            }
-
-            // Subscribed Tag
-            ElevatedCard(
-                shape = MaterialTheme.shapes.extraLarge,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.NotificationsActive, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Subscribed Tags", style = MaterialTheme.typography.titleMedium)
-                    }
-
-                    if (subscribedTags.isEmpty()) {
-                        Text(
-                            "You haven’t subscribed to any tags yet.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    } else {
-                        // Playful chip cloud
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            subscribedTags.forEachIndexed { index, tag ->
-                                AssistChip(
-                                    onClick = { /* maybe manage tags later */ },
-                                    shape = MaterialTheme.shapes.medium,
-                                    label = { Text(tag.title) },
-                                    modifier = Modifier.wrapContentSize()
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Account Meta
-            ElevatedCard(
-                shape = RoundedCornerShape(22.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.ManageAccounts, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Account Info", style = MaterialTheme.typography.titleMedium)
-                    }
-
-                    MetaText(
-                        "Role", when {
-                            isAdmin -> "Administrator"
-                            isAuthor -> "Author"
-                            else -> "Student"
-                        }
-                    )
-
-                    MetaText("Last Login", lastLogin)
-                    MetaText("Joined", createdAt)
-                }
-            }
+            ProfilePicture(
+                name = uiState.name
+            )
+            ProfileName(
+                name = uiState.name, email = uiState.email
+            )
+            ProfileSubscribedTags(
+                subscribedTagTitles = uiState.subscribedTags.map { it.title },
+                dismissSubscribeSheet = dismissSubscribeSheet
+            )
+            ProfileMeta(
+                isAdmin = uiState.isAdmin,
+                isAuthor = uiState.isAuthor,
+                lastLogin = uiState.lastLogin,
+                createdAt = uiState.createdAt
+            )
         }
-
-
-    }
-
-}
-
-@Composable
-private fun MetaText(label: String, value: String) {
-    Column {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(value, style = MaterialTheme.typography.bodyLarge)
     }
 }
-
-val FunkyShape = RoundedCornerShape(
-    topStart = 28.dp,
-    topEnd = 10.dp,
-    bottomEnd = 32.dp,
-    bottomStart = 16.dp
-)
 
 @Preview
 @Composable
 fun ProfileSuccessPreview() {
     ProfileScreenSuccessContent(
-        name = "John Doe",
-        email = "john.quincy.adams@examplepetstore.com",
-        isAdmin = false,
-        isAuthor = true,
-        lastLogin = "2-2-2025",
-        createdAt = "2-2-2025",
-        subscribedTags = listOf()
+        uiState = UiState.Success(
+            name = "John Doe",
+            email = "john.quincy.adams@examplepetstore.com",
+            isAdmin = false,
+            isAuthor = true,
+            lastLogin = "2-2-2025",
+            createdAt = "2-2-2025",
+            subscribedTags = listOf(),
+            subscribableTags = null,
+            selectedSubscribableTagsIds = emptyList(),
+        ),
+        updateSelectedSubscribableTag = {},
+        applySelectedTags = {},
+        dismissSubscribeSheet = {},
     )
 }
 

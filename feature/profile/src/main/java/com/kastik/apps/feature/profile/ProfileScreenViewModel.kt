@@ -9,6 +9,8 @@ import com.kastik.apps.core.domain.usecases.GetUserProfileUseCase
 import com.kastik.apps.core.domain.usecases.GetUserSubscriptionsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,8 +21,8 @@ class ProfileScreenViewModel @Inject constructor(
     private val getUserSubscriptionsUseCase: GetUserSubscriptionsUseCase
 ) : ViewModel() {
 
-    private val _uiState = mutableStateOf<UiState>(UiState.Loading)
-    val uiState: State<UiState> = _uiState
+    private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
+    val uiState: StateFlow<UiState> = _uiState
 
     init {
         loadProfile()
@@ -30,20 +32,36 @@ class ProfileScreenViewModel @Inject constructor(
         analytics.logScreenView("profile_screen")
     }
 
+    fun toggleTagsSheet() {
+        val state = _uiState.value as? UiState.Success
+        state?.let {
+            _uiState.value = state.copy(
+                showTagSheet = !state.showTagSheet
+            )
+        }
+    }
+
     private fun loadProfile() {
+        _uiState.value = UiState.Loading
         viewModelScope.launch {
-            _uiState.value = UiState.Loading
             try {
-                // Run both requests in parallel for speed
                 val profileDeferred = async { getProfileUseCase() }
                 val subscriptionsDeferred = async { getUserSubscriptionsUseCase() }
+                val subscribedTagDeferred = async { getUserSubscribableTagsUseCase() }
 
                 val profile = profileDeferred.await()
                 val subscriptions = subscriptionsDeferred.await()
+                val subscribedTags = subscribedTagDeferred.await()
 
                 _uiState.value = UiState.Success(
-                    profile = profile,
-                    subscribedTag = subscriptions
+                    subscribedTags = subscriptions,
+                    subscribableTags = subscribedTags,
+                    name = profile.name,
+                    email = profile.email,
+                    isAdmin = profile.isAdmin,
+                    isAuthor = profile.isAuthor,
+                    lastLogin = profile.lastLoginAt,
+                    createdAt = profile.createdAt,
                 )
 
             } catch (e: Exception) {

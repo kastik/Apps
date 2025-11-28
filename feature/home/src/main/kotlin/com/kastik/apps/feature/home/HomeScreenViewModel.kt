@@ -29,15 +29,13 @@ class HomeScreenViewModel @Inject constructor(
         evaluateSignInStatus()
     }
 
-    private val _events = MutableSharedFlow<HomeEvent>()
+    private val _events = MutableSharedFlow<HomeEvent>(replay = 0)
     val events = _events.asSharedFlow()
 
-    private val _uiState = mutableStateOf(
-        UiState(
-            announcements = getPagedAnnouncements().cachedIn(viewModelScope),
-        )
-    )
-    val uiState: State<UiState> = _uiState
+    val announcements = getPagedAnnouncements().cachedIn(viewModelScope)
+
+    private val _uiState = MutableStateFlow(UiState())
+    val uiState: StateFlow<UiState> = _uiState
 
     fun onScreenViewed() {
         analytics.logScreenView("home_screen")
