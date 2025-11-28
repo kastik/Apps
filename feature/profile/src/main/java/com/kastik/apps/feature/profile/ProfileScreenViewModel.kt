@@ -1,12 +1,12 @@
 package com.kastik.apps.feature.profile
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kastik.apps.core.analytics.Analytics
 import com.kastik.apps.core.domain.usecases.GetUserProfileUseCase
+import com.kastik.apps.core.domain.usecases.GetUserSubscribableTagsUseCase
 import com.kastik.apps.core.domain.usecases.GetUserSubscriptionsUseCase
+import com.kastik.apps.core.domain.usecases.SubscribeToTagsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +18,9 @@ import javax.inject.Inject
 class ProfileScreenViewModel @Inject constructor(
     private val analytics: Analytics,
     private val getProfileUseCase: GetUserProfileUseCase,
-    private val getUserSubscriptionsUseCase: GetUserSubscriptionsUseCase
+    private val getUserSubscriptionsUseCase: GetUserSubscriptionsUseCase,
+    private val getUserSubscribableTagsUseCase: GetUserSubscribableTagsUseCase,
+    private val subscribeToTagsUseCase: SubscribeToTagsUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
@@ -38,6 +40,25 @@ class ProfileScreenViewModel @Inject constructor(
             _uiState.value = state.copy(
                 showTagSheet = !state.showTagSheet
             )
+        }
+    }
+
+    fun updateSelectedTagIds(newSubscribedTagsIds: List<Int>) {
+        val state = _uiState.value as? UiState.Success
+        state?.let {
+            _uiState.value = state.copy(
+                selectedSubscribableTagsIds = newSubscribedTagsIds
+            )
+        }
+    }
+
+    fun onApplyTags() {
+        viewModelScope.launch {
+            val state = _uiState.value as? UiState.Success
+            state?.let {
+                subscribeToTagsUseCase(state.selectedSubscribableTagsIds)
+            }
+            loadProfile()
         }
     }
 

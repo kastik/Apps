@@ -13,8 +13,13 @@ android {
 
     defaultConfig {
         applicationId = "com.kastik.apps"
-        versionCode = 4
-        versionName = "1.0"
+        versionCode = 6
+        versionName = "0.5"
+    }
+    val keystoreProperties = Properties()
+    val keystorePropertiesFile = rootProject.file("local.properties")
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
     }
     buildTypes {
         release {
