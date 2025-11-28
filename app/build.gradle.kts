@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.kastik.application.compose)
     alias(libs.plugins.kastik.hilt)
@@ -21,6 +24,16 @@ android {
     if (keystorePropertiesFile.exists()) {
         keystoreProperties.load(FileInputStream(keystorePropertiesFile))
     }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(keystoreProperties["store.file"] as String)
+            storePassword = keystoreProperties["store.password"] as String
+            keyAlias = keystoreProperties["key.alias"] as String
+            keyPassword = keystoreProperties["key.password"] as String
+        }
+    }
+
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
