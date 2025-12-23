@@ -21,7 +21,8 @@ internal fun AnnouncementDto.toAnnouncementPreview(): AnnouncementPreview {
         author = author.name,
         tags = tags.map { it.toTag() },
         attachments = attachments.map { it.toAttachment() },
-        date = updatedAt
+        date = updatedAt,
+        pinned = isPinned
     )
 }
 
@@ -43,6 +44,7 @@ internal fun AnnouncementWithoutBody.toAnnouncementPreview() = AnnouncementPrevi
     attachments = attachments.map { it.toAttachment() },
     author = author.name,
     date = announcement.updatedAt,
+    pinned = announcement.isPinned
 )
 
 internal fun AnnouncementWithBody.toAnnouncementView() = AnnouncementView(

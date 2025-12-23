@@ -1,4 +1,4 @@
-package com.kastik.apps.core.designsystem.component
+package com.kastik.apps.core.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

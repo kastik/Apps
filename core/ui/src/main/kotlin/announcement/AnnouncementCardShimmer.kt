@@ -1,4 +1,4 @@
-package com.kastik.apps.core.designsystem.component
+package com.kastik.apps.core.ui.announcement
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat

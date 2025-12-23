@@ -1,7 +1,9 @@
-package com.kastik.apps.core.designsystem.component
+package com.kastik.apps.core.ui.sheet
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -25,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.kastik.apps.core.designsystem.theme.AppsAboardTheme
 
 @Composable
-fun SelectableTagItem(
+internal fun SelectableTagItem(
     modifier: Modifier = Modifier,
     title: String,
     isSelected: Boolean,
@@ -64,7 +66,11 @@ fun SelectableTagItem(
                 modifier = Modifier.weight(1f)
             )
 
-            AnimatedVisibility(visible = isSelected) {
+            AnimatedVisibility(
+                visible = isSelected,
+                enter = scaleIn(),
+                exit = scaleOut()
+            ) {
                 Icon(
                     imageVector = Icons.Rounded.Check,
                     contentDescription = null,

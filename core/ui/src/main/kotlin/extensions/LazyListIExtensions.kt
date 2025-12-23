@@ -1,4 +1,4 @@
-package com.kastik.apps.core.designsystem.utils
+package com.kastik.apps.core.ui.extensions
 
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable

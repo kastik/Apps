@@ -17,5 +17,6 @@ data class AnnouncementPreview(
     val author: String,
     val tags: List<Tag> = emptyList(),
     val attachments: List<Attachment> = emptyList(),
-    val date: String
+    val date: String,
+    val pinned: Boolean
 )

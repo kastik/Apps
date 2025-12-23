@@ -131,9 +131,14 @@ private fun HomeScreenContent(
 
 
     AnimatedVisibility(uiState.showSignInNotice) {
-        SignInNotice(
-            onDismiss = onSignInNoticeDismissed,
-            onSignIn = onSignIn
+        IEEDialog(
+            icon = Icons.AutoMirrored.Default.Login,
+            title = "Sign in",
+            text = "Sign in to unlock all announcements. You are currently browsing with limited access.",
+            confirmText = "Sign-in",
+            onConfirm = { onSignIn(context) },
+            dismissText = "Dismiss",
+            onDismiss = onSignInNoticeDismissed
         )
     }
     Column(
