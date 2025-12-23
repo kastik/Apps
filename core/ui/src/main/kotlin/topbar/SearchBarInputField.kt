@@ -1,0 +1,37 @@
+package com.kastik.apps.core.ui.topbar
+
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun SearchBarInputField(
+    textFieldState: TextFieldState,
+    searchBarState: SearchBarState,
+    onSearch: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SearchBarDefaults.InputField(
+        modifier = modifier,
+        textFieldState = textFieldState,
+        searchBarState = searchBarState,
+        placeholder = { Text("Search") },
+        leadingIcon = { Icon(imageVector = Icons.Filled.Search, contentDescription = null) },
+        onSearch = { query ->
+            onSearch(query)
+        },
+    )
+}
+
+
+
+
