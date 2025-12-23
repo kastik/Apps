@@ -12,21 +12,38 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class GetPagedAnnouncementsUseCase @Inject constructor(
-    private val announcementRepository: AnnouncementRepository
+    private val announcementRepository: AnnouncementRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) {
-    operator fun invoke(): Flow<PagingData<AnnouncementPreview>> =
-        announcementRepository.getPagedAnnouncements()
+    operator fun invoke(): Flow<PagingData<AnnouncementPreview>> {
+        return userPreferencesRepository.getSortType()
+            .flatMapLatest { sortType ->
+                announcementRepository.getPagedAnnouncements(
+                    sortType,
+                    query = "",
+                    authorIds = emptyList(),
+                    tagIds = emptyList(),
+                )
+            }
+    }
 }
 
 class GetPagedFilteredAnnouncementsUseCase @Inject constructor(
-    private val announcementRepository: AnnouncementRepository
+    private val announcementRepository: AnnouncementRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) {
     operator fun invoke(
-        query: String?,
-        authorIds: List<Int>?,
-        tagIds: List<Int>?
+        query: String,
+        authorIds: List<Int>,
+        tagIds: List<Int>
     ): Flow<PagingData<AnnouncementPreview>> =
         announcementRepository.getPagedFilteredAnnouncements(query, authorIds, tagIds)
+        userPreferencesRepository.getSortType()
+            .flatMapLatest { sortType ->
+                announcementRepository.getPagedAnnouncements(sortType, query, authorIds, tagIds)
+            }
+}
+
 }
 
 class GetAnnouncementWithIdUseCase @Inject constructor(
@@ -34,6 +51,14 @@ class GetAnnouncementWithIdUseCase @Inject constructor(
 ) {
     operator fun invoke(id: Int): Flow<AnnouncementView> =
         announcementRepository.getAnnouncementWithId(id)
+}
+
+
+class RefreshAnnouncementWithIdUseCase @Inject constructor(
+    private val announcementRepository: AnnouncementRepository
+) {
+    suspend operator fun invoke(id: Int) =
+        announcementRepository.refreshAnnouncementWithId(id)
 }
 
 class ShouldRefreshAnnouncementsUseCase @Inject constructor(

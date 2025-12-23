@@ -21,14 +21,17 @@ class SettingsScreenViewModel @Inject constructor(
     private val setDynamicColorUseCase: SetDynamicColorUseCase,
     private val getDynamicColorUseCase: GetDynamicColorUseCase,
     private val getUserThemeUseCase: GetUserThemeUseCase,
+    private val getSortTypeUseCase: GetSortTypeUseCase,
+    private val setSortTypeUseCase: SetSortTypeUseCase
 ) : ViewModel() {
 
     val uiState: StateFlow<UiState> =
         combine(
             getUserThemeUseCase(),
-            getDynamicColorUseCase()
-        ) { theme, dynamicColor ->
-            UiState.Success(theme, dynamicColor)
+            getDynamicColorUseCase(),
+            getSortTypeUseCase()
+        ) { theme, dynamicColor, sortType ->
+            UiState.Success(theme, sortType, dynamicColor)
         }
             .stateIn(
                 scope = viewModelScope,
@@ -48,5 +51,9 @@ class SettingsScreenViewModel @Inject constructor(
         }
     }
 
-
+    fun setSortType(sortType: SortType) {
+        viewModelScope.launch {
+            setSortTypeUseCase(sortType)
+        }
+    }
 }

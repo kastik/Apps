@@ -34,7 +34,8 @@ class ProfileScreenViewModel @Inject constructor(
     private val signOutUserUseCase: SignOutUserUseCase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
+    private val _uiState =
+        MutableStateFlow<UiState>(UiState.Loading(message = "Fetching your profile..."))
     val uiState: StateFlow<UiState> = _uiState
     private var profileCollectionJob: Job? = null
 
@@ -63,7 +64,7 @@ class ProfileScreenViewModel @Inject constructor(
 
     fun onSignOutClick() {
         profileCollectionJob?.cancel()
-        _uiState.value = UiState.Loading
+        _uiState.value = UiState.Loading("Signing out...")
         viewModelScope.launch {
             signOutUserUseCase()
             _uiState.value = UiState.SignedOut("You have successfully logged out")

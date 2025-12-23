@@ -17,6 +17,9 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class AnnouncementScreenViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = AnnouncementScreenViewModel.Factory::class)
+class AnnouncementScreenViewModel @AssistedInject constructor(
+    @Assisted val announcementId: Int,
     private val getAnnouncementWithIdUseCase: GetAnnouncementWithIdUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)

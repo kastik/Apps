@@ -1,8 +1,12 @@
 package com.kastik.apps.feature.profile
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,37 +15,41 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.ManageAccounts
+import androidx.compose.material.icons.outlined.NotificationsActive
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kastik.apps.core.designsystem.component.FilterSheetRecursiveTag
-import com.kastik.apps.core.designsystem.component.ProfileMeta
-import com.kastik.apps.core.designsystem.component.ProfileName
-import com.kastik.apps.core.designsystem.component.ProfilePicture
-import com.kastik.apps.core.designsystem.component.ProfileSubscribedTags
-import com.kastik.apps.core.designsystem.utils.TrackScreenViewEvent
+import com.kastik.apps.core.designsystem.component.IEETag
 import com.kastik.apps.core.model.aboard.Profile
-import kotlinx.coroutines.delay
+import com.kastik.apps.core.ui.extensions.TrackScreenViewEvent
+import com.kastik.apps.core.ui.placeholder.LoadingContent
+import com.kastik.apps.core.ui.placeholder.StatusContent
+import com.kastik.apps.core.ui.sheet.GenericRecursiveSheet
 
 
 @Composable
@@ -53,64 +61,31 @@ internal fun ProfileRoute(
 
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
-    when (val state = uiState.value) {
-        is UiState.Loading -> LoadingState()
-        is UiState.Error -> ErrorState(error = state.message)
-        is UiState.SignedOut -> LoggedOutState(state.message, navigateBack)
-        is UiState.Success -> SuccessState(
-            uiState = state,
-            applySelectedTags = viewModel::onApplyTags,
-            updateSelectedSubscribableTag = viewModel::updateSelectedTagIds,
-            showTagSheet = viewModel::toggleTagsSheet,
-            onSignOutClick = viewModel::onSignOutClick
-        )
-    }
-}
+    AnimatedContent(
+        targetState = uiState.value,
+        contentKey = { state ->
+            state::class
+        }
+    ) { state ->
+        when (state) {
+            is UiState.Loading -> LoadingContent(state.message, modifier = Modifier.fillMaxSize())
+            is UiState.Error -> StatusContent(message = state.message)
+            is UiState.SignedOut -> StatusContent(
+                message = state.message,
+                automaticAction = navigateBack
+            )
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun LoadingState() {
-    Surface {
-        Box(
-            Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-        ) {
-            CircularWavyProgressIndicator(
-                modifier = Modifier.size(64.dp),
-                color = MaterialTheme.colorScheme.secondary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            is UiState.Success -> SuccessState(
+                uiState = state,
+                applySelectedTags = viewModel::onApplyTags,
+                updateSelectedSubscribableTag = viewModel::updateSelectedTagIds,
+                showTagSheet = viewModel::toggleTagsSheet,
+                onSignOutClick = viewModel::onSignOutClick
             )
         }
     }
-}
 
-@Composable
-private fun ErrorState(error: String) {
-    Surface {
-        Box(
-            Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-        ) {
-            Text(error)
-        }
-    }
 
-}
-
-@Composable
-private fun LoggedOutState(
-    message: String,
-    navigateBack: () -> Unit
-) {
-    Surface {
-        Box(
-            Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-        ) {
-            Text(message)
-            LaunchedEffect(Unit) {
-                delay(1000)
-                navigateBack()
-            }
-        }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -137,13 +112,16 @@ private fun SuccessState(
 
         if (uiState.showTagSheet) {
             uiState.subscribableTags?.let { tags ->
-                FilterSheetRecursiveTag(
-                    tags = tags,
+                GenericRecursiveSheet(
+                    items = tags,
                     applySelectedTags = applySelectedTags,
-                    selectedRootIds = uiState.selectedSubscribableTagsIds,
+                    selectedRootIds = emptyList(),
                     updateSelectedTagsIds = updateSelectedSubscribableTag,
                     sheetState = sheetState,
                     onDismiss = { showTagSheet(false) },
+                    idProvider = { tag -> tag.id },
+                    labelProvider = { it.title },
+                    childrenProvider = { it.subTags }
                 )
             }
         }
@@ -198,6 +176,162 @@ private fun SuccessState(
     }
 }
 
+
+@Composable
+private fun ProfileMeta(
+    modifier: Modifier = Modifier,
+    isAdmin: Boolean,
+    isAuthor: Boolean,
+    lastLogin: String,
+    createdAt: String,
+) {
+    ElevatedCard(
+        shape = RoundedCornerShape(22.dp), modifier = modifier.fillMaxWidth()
+    ) {
+        Column(
+            Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.ManageAccounts, null)
+                Spacer(Modifier.width(8.dp))
+                Text("Account Info", style = MaterialTheme.typography.titleMedium)
+            }
+            Column {
+                Text(
+                    "Role",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    when {
+                        isAdmin -> "Administrator"
+                        isAuthor -> "Author"
+                        else -> "Student"
+                    }, style = MaterialTheme.typography.bodyLarge
+                )
+            }
+            Column {
+                Text(
+                    "Last Login",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    lastLogin, style = MaterialTheme.typography.bodyLarge
+                )
+            }
+            Column {
+                Text(
+                    "Joined",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    createdAt, style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileName(
+    modifier: Modifier = Modifier,
+    name: String,
+    email: String,
+) {
+    ElevatedCard(
+        shape = MaterialTheme.shapes.extraLarge,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(
+            Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(name, style = MaterialTheme.typography.headlineSmall)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.Email, null, Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(email, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfilePicture(
+    name: String
+) {
+    Box(
+        modifier = Modifier
+            .padding(horizontal = 6.dp)
+            .size(110.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = name.take(1).uppercase(),
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    }
+}
+
+@Composable
+private fun ProfileSubscribedTags(
+    subscribedTagTitles: List<String>,
+    showTagSheet: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ElevatedCard(
+        shape = MaterialTheme.shapes.extraLarge,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(
+            Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.NotificationsActive, null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Subscribed Tags", style = MaterialTheme.typography.titleMedium)
+                }
+                IconButton(
+                    onClick = { showTagSheet(true) }
+                ) {
+                    Icon(Icons.Outlined.Settings, null)
+                }
+            }
+
+            if (subscribedTagTitles.isEmpty()) {
+                Text(
+                    "You haven’t subscribed to any tags yet.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    subscribedTagTitles.forEachIndexed { index, tag ->
+                        IEETag(
+                            tag
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 @Preview
 @Composable
 fun ProfileSuccessStatePreview() {
@@ -225,16 +359,4 @@ fun ProfileSuccessStatePreview() {
         showTagSheet = {},
         onSignOutClick = {},
     )
-}
-
-@Preview
-@Composable
-fun PreviewLoadingState() {
-    LoadingState()
-}
-
-@Preview
-@Composable
-fun PreviewErrorState() {
-    ErrorState("Something Went Wrong")
 }
