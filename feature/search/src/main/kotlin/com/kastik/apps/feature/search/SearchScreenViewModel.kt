@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import com.kastik.apps.core.domain.usecases.GetAnnouncementTagsUseCase
+import com.kastik.apps.core.domain.usecases.GetAuthorQuickResultsUseCase
 import com.kastik.apps.core.domain.usecases.GetAuthorsUseCase
 import com.kastik.apps.core.domain.usecases.GetPagedFilteredAnnouncementsUseCase
 import com.kastik.apps.core.domain.usecases.GetSearchQuickResultsAnnouncementsUseCase
@@ -14,10 +15,14 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel(assistedFactory = SearchScreenViewModel.Factory::class)
 class SearchScreenViewModel @AssistedInject constructor(
@@ -27,14 +32,55 @@ class SearchScreenViewModel @AssistedInject constructor(
     private val getFilteredAnnouncementsUseCase: GetPagedFilteredAnnouncementsUseCase,
     private val getAnnouncementTagsUseCase: GetAnnouncementTagsUseCase,
     private val getAuthorsUseCase: GetAuthorsUseCase,
+    private val refreshAuthorsUseCase: RefreshAuthorsUseCase,
+    private val refreshAnnouncementTagsUseCase: RefreshAnnouncementTagsUseCase,
+    private val getTagsQuickResults: GetTagsQuickResults,
+    private val getAuthorQuickResultsUseCase: GetAuthorQuickResultsUseCase,
+    private val getSearchQuickResultsAnnouncementsUseCase: GetSearchQuickResultsAnnouncementsUseCase,
 ) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(
+        UiState(
+            searchResults = getFilteredAnnouncementsUseCase(
+                query,
+                selectedAuthorIds,
+                selectedTagIds
+            ).cachedIn(viewModelScope)
+        )
+    )
+    val uiState: StateFlow<UiState> = _uiState
+
+    private var quickResultsJob: Job? = null
+
     init {
-        getAuthors()
         getTags()
+        getAuthors()
+        refreshData()
+        updateQuery(query)
+        updateSelectedTagIds(selectedTagIds)
+        updateSelectedAuthorIdsIds(selectedAuthorIds)
     }
 
-    private val _uiState = MutableStateFlow(UiState())
-    val uiState: StateFlow<UiState> = _uiState
+    fun updateQuickResults(
+        query: String
+    ) {
+        quickResultsJob?.cancel()
+        quickResultsJob = viewModelScope.launch {
+            combine(
+                getTagsQuickResults(query),
+                getAuthorQuickResultsUseCase(query),
+                getSearchQuickResultsAnnouncementsUseCase(query)
+            ) { tags, authors, announcements ->
+                _uiState.update {
+                    it.copy(
+                        tagsQuickResults = tags,
+                        authorQuickResults = authors,
+                        announcementQuickResults = announcements
+                    )
+                }
+            }.collect()
+        }
+    }
 
     fun toggleTagSheet() {
         _uiState.value = _uiState.value.copy(
@@ -48,6 +94,15 @@ class SearchScreenViewModel @AssistedInject constructor(
         )
     }
 
+    fun refreshData() {
+        viewModelScope.launch {
+            async {
+                runCatching { refreshAuthorsUseCase() }
+                runCatching { refreshAnnouncementTagsUseCase() }
+            }
+
+        }
+    }
 
     fun getAuthors() {
         viewModelScope.launch {
@@ -59,7 +114,7 @@ class SearchScreenViewModel @AssistedInject constructor(
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    authors = null
+                    authors = emptyList()
                 )
             }
 
@@ -76,7 +131,7 @@ class SearchScreenViewModel @AssistedInject constructor(
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    tags = null
+                    tags = emptyList()
                 )
             }
 
@@ -105,20 +160,32 @@ class SearchScreenViewModel @AssistedInject constructor(
         updateSearchResults()
     }
 
+    fun updateSearchResults(
+        query: String,
+        tagIds: List<Int>,
+        authorIds: List<Int>
+    ) {
+        _uiState.value = _uiState.value.copy(
+            query = query,
+            selectedTagIds = tagIds,
+            selectedAuthorIds = authorIds
+
+        )
+        updateSearchResults()
+    }
+
     private fun updateSearchResults() {
         viewModelScope.launch {
-            if ((uiState.value.query.trim()
-                    .isBlank()) && uiState.value.selectedAuthorIds.isEmpty() && uiState.value.selectedTagIds.isEmpty()
+            if (false
+            //(uiState.value.query.trim().isBlank()) && uiState.value.selectedAuthorIds.isEmpty() && uiState.value.selectedTagIds.isEmpty()
             ) {
-                _uiState.value = _uiState.value.copy(
-                    searchResults = null,
-                )
+                // _uiState.value = _uiState.value.copy(searchResults = null,)
             } else {
                 _uiState.value = _uiState.value.copy(
                     searchResults = getFilteredAnnouncementsUseCase(
-                        uiState.value.query,
-                        uiState.value.selectedAuthorIds,
-                        uiState.value.selectedTagIds
+                        query = _uiState.value.query,
+                        authorIds = _uiState.value.selectedAuthorIds.toList(),
+                        tagIds = _uiState.value.selectedTagIds.toList()
                     ).cachedIn(
                         viewModelScope
                     )
@@ -137,6 +204,3 @@ class SearchScreenViewModel @AssistedInject constructor(
     }
 
 }
-
-
-

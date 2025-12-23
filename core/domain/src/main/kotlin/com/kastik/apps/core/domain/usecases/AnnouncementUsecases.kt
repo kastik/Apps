@@ -3,11 +3,14 @@ package com.kastik.apps.core.domain.usecases
 import androidx.paging.PagingData
 import com.kastik.apps.core.domain.repository.AnnouncementRepository
 import com.kastik.apps.core.domain.repository.ProfileRepository
+import com.kastik.apps.core.domain.repository.UserPreferencesRepository
 import com.kastik.apps.core.model.aboard.AnnouncementPreview
 import com.kastik.apps.core.model.aboard.AnnouncementView
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -37,13 +40,25 @@ class GetPagedFilteredAnnouncementsUseCase @Inject constructor(
         authorIds: List<Int>,
         tagIds: List<Int>
     ): Flow<PagingData<AnnouncementPreview>> =
-        announcementRepository.getPagedFilteredAnnouncements(query, authorIds, tagIds)
         userPreferencesRepository.getSortType()
             .flatMapLatest { sortType ->
                 announcementRepository.getPagedAnnouncements(sortType, query, authorIds, tagIds)
             }
 }
 
+class GetSearchQuickResultsAnnouncementsUseCase @Inject constructor(
+    private val announcementRepository: AnnouncementRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
+) {
+    operator fun invoke(query: String? = null): Flow<List<AnnouncementPreview>> =
+        userPreferencesRepository.getSortType()
+            .flatMapLatest { sortType ->
+                if (query.isNullOrBlank()) {
+                    flowOf(emptyList())
+                } else {
+                    announcementRepository.getAnnouncementsQuickResults(sortType, query)
+                }
+            }
 }
 
 class GetAnnouncementWithIdUseCase @Inject constructor(

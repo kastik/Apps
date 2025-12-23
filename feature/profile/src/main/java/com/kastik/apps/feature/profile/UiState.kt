@@ -15,6 +15,6 @@ sealed class UiState {
 
     data class SignedOut(val message: String) : UiState()
 
-    data object Loading : UiState()
+    data class Loading(val message: String) : UiState()
     data class Error(val message: String) : UiState()
 }

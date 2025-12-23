@@ -5,11 +5,14 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.kastik.apps.feature.search.SearchScreen
+import com.kastik.apps.feature.search.SearchScreenViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable

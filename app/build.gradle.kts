@@ -9,7 +9,6 @@ plugins {
     alias(libs.plugins.crashlytics.gradlePlugin)
     alias(libs.plugins.performance.gradlePlugin)
     alias(libs.plugins.baselineprofile)
-    alias(libs.plugins.oss.licenses)
 }
 
 android {

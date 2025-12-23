@@ -281,8 +281,18 @@ fun SuccessStatePreview() {
         })
 }
 
-@Preview
-@Composable
-fun ErrorStatePreview() {
-    ErrorState("Something went wrong")
+//TODO This is copied/pasted across AnnouncementScreen/SearchScreen/HomeScreen, find a common module and hoist it
+fun shareAnnouncement(
+    context: Context,
+    announcementId: Int
+) {
+    val url = "https://aboard.iee.ihu.gr/announcements/$announcementId"
+    val sendIntent: Intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, url)
+        type = "text/plain"
+        putExtra(Intent.EXTRA_SUBJECT, "Check out this announcement!")
+    }
+    val shareIntent = Intent.createChooser(sendIntent, "Share Announcement via")
+    context.startActivity(shareIntent)
 }
