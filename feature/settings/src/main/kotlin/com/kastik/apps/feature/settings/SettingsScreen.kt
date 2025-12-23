@@ -56,19 +56,17 @@ import com.kastik.apps.core.ui.placeholder.LoadingContent
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun SettingsRoute(
+    navigateToLicenses: () -> Unit,
     viewModel: SettingsScreenViewModel = hiltViewModel(),
-    navigateToLicenses: () -> Unit
 ) {
     TrackScreenViewEvent("settings_screen")
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     AnimatedContent(
-        targetState = uiState,
-        contentKey = { state ->
+        targetState = uiState, contentKey = { state ->
             state::class
-        }
-    ) { state ->
+        }) { state ->
         when (state) {
 
             is UiState.Loading -> LoadingContent(modifier = Modifier.fillMaxSize())
@@ -102,6 +100,7 @@ private fun SettingsScreenContent(
     setDynamicColor: (Boolean) -> Unit = {},
     navigateToLicenses: () -> Unit = {}
 ) {
+
     val context = LocalContext.current
     val analytics = LocalAnalytics.current
     val hapticFeedback = LocalHapticFeedback.current
@@ -145,16 +144,13 @@ private fun SettingsScreenContent(
                             Text("Sort by", style = MaterialTheme.typography.bodyLarge)
                             Spacer(Modifier.height(8.dp))
                             SortingSegmentedButton(
-                                selected = sortType,
-                                onSelected = { sortType ->
+                                selected = sortType, onSelected = { sortType ->
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.ToggleOn)
                                     setSortType(sortType)
                                     analytics.logEvent(
-                                        "sort_type_changed",
-                                        mapOf("sort_type" to sortType.name)
+                                        "sort_type_changed", mapOf("sort_type" to sortType.name)
                                     )
-                                }
-                            )
+                                })
                         }
                     }
                 }
@@ -175,13 +171,11 @@ private fun SettingsScreenContent(
                             Text("Theme", style = MaterialTheme.typography.bodyLarge)
                             Spacer(Modifier.height(8.dp))
                             ThemeSegmentedButton(
-                                selected = theme,
-                                onSelected = { theme ->
+                                selected = theme, onSelected = { theme ->
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.ToggleOn)
                                     setTheme(theme)
                                     analytics.logEvent(
-                                        "theme_changed",
-                                        mapOf("theme" to theme.name)
+                                        "theme_changed", mapOf("theme" to theme.name)
                                     )
                                 }
 
@@ -203,8 +197,7 @@ private fun SettingsScreenContent(
                                     "dynamic_color_changed",
                                     mapOf("dynamic_color_enabled" to enabled.toString())
                                 )
-                            }
-                        )
+                            })
                     }
                 }
             }
@@ -235,8 +228,7 @@ private fun SettingsScreenContent(
                                     }
                                 }
                                 context.startActivity(intent)
-                            }
-                        )
+                            })
                         HorizontalDivider()
                         SettingSwitchRow(
                             title = "Email updates",
