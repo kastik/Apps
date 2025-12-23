@@ -16,6 +16,7 @@ fun NavController.navigateToSettings(navOptions: NavOptions) =
     navigate(route = SettingsRoute, navOptions)
 
 fun NavGraphBuilder.settingsScreen(
+    navigateToLicenses: () -> Unit
 ) {
     composable<SettingsRoute>(enterTransition = {
         slideInVertically(
@@ -26,6 +27,8 @@ fun NavGraphBuilder.settingsScreen(
             targetOffsetY = { it },
         )
     }) {
-        SettingsRoute()
+        SettingsRoute(
+            navigateToLicenses = navigateToLicenses
+        )
     }
 }

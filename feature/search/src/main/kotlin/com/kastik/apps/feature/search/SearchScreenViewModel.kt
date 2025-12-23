@@ -6,14 +6,20 @@ import androidx.paging.cachedIn
 import com.kastik.apps.core.domain.usecases.GetAnnouncementTagsUseCase
 import com.kastik.apps.core.domain.usecases.GetAuthorsUseCase
 import com.kastik.apps.core.domain.usecases.GetPagedFilteredAnnouncementsUseCase
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@HiltViewModel
-class SearchScreenViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = SearchScreenViewModel.Factory::class)
+class SearchScreenViewModel @AssistedInject constructor(
+    @Assisted("query") private val query: String,
+    @Assisted("tag_ids") private val selectedTagIds: List<Int>,
+    @Assisted("author_ids") private val selectedAuthorIds: List<Int>,
     private val getFilteredAnnouncementsUseCase: GetPagedFilteredAnnouncementsUseCase,
     private val getAnnouncementTagsUseCase: GetAnnouncementTagsUseCase,
     private val getAuthorsUseCase: GetAuthorsUseCase,
@@ -117,6 +123,14 @@ class SearchScreenViewModel @Inject constructor(
         }
     }
 
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            @Assisted("query") query: String,
+            @Assisted("tag_ids") selectedTagIds: List<Int>,
+            @Assisted("author_ids") selectedAuthorIds: List<Int>,
+        ): SearchScreenViewModel
+    }
 
 }
 

@@ -13,11 +13,18 @@ import com.kastik.apps.feature.search.SearchScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
-object SearchRoute
+data class SearchRoute(
+    val query: String,
+    val tags: List<Int>,
+    val authors: List<Int>,
+)
 
 fun NavController.navigateToSearch(
     navOptions: NavOptions,
-) = navigate(route = SearchRoute, navOptions)
+    query: String = "",
+    tags: List<Int> = emptyList(),
+    authors: List<Int> = emptyList(),
+) = navigate(route = SearchRoute(query = query, tags = tags, authors = authors), navOptions)
 
 
 fun NavGraphBuilder.searchScreen(
@@ -43,10 +50,18 @@ fun NavGraphBuilder.searchScreen(
         exitTransition = {
             fadeOut()
         }
-    ) {
+    ) { backStackEntry ->
+        val args = backStackEntry.toRoute<SearchRoute>()
         SearchScreen(
             navigateBack = navigateBack,
-            navigateToAnnouncement = navigateToAnnouncement
+            navigateToAnnouncement = navigateToAnnouncement,
+            viewModel = hiltViewModel<SearchScreenViewModel, SearchScreenViewModel.Factory> { factory ->
+                factory.create(
+                    args.query,
+                    args.tags,
+                    args.authors,
+                )
+            }
         )
     }
 }

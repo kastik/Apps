@@ -34,7 +34,13 @@ fun NavGraphBuilder.announcementScreen(
         popEnterTransition = { fadeIn() }) { backStackEntry ->
         val args = backStackEntry.toRoute<AnnouncementRoute>()
         AnnouncementRoute(
-            navigateBack = navigateBack, announcementId = args.id
+            navigateBack = navigateBack,
+            announcementId = args.id,
+            viewModel = hiltViewModel<AnnouncementScreenViewModel, AnnouncementScreenViewModel.Factory>(
+                key = args.id.toString(),
+            ) { factory ->
+                factory.create(args.id)
+            }
         )
     }
 }

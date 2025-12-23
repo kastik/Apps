@@ -23,18 +23,17 @@ fun NavGraphBuilder.homeScreen(
     navigateToAnnouncement: (Int) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToProfile: () -> Unit,
-    navigateToSearch: () -> Unit
+    navigateToSearch: (query: String, tagsId: List<Int>, authorIds: List<Int>) -> Unit,
 ) {
     composable<HomeRoute>(
         enterTransition = { scaleIn() },
         exitTransition = { fadeOut() },
         popEnterTransition = { fadeIn() }) { backStackEntry ->
-        HomeScreenRoute(navigateToAnnouncement = {
-            navigateToAnnouncement(it)
-        }, navigateToSettings = {
-            navigateToSettings()
-        }, navigateToProfile = {
-            navigateToProfile()
-        }, navigateToSearch = { navigateToSearch() })
+        HomeScreenRoute(
+            navigateToAnnouncement = navigateToAnnouncement,
+            navigateToSettings = navigateToSettings,
+            navigateToProfile = navigateToProfile,
+            navigateToSearch = navigateToSearch,
+        )
     }
 }
