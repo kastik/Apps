@@ -17,7 +17,7 @@ import com.kastik.apps.core.data.mappers.toAuthorEntity
 import com.kastik.apps.core.data.mappers.toTagEntity
 import com.kastik.apps.core.database.entities.RemoteKeys
 import com.kastik.apps.core.database.relations.AnnouncementPreviewRelation
-import com.kastik.apps.core.model.user.SortType
+import com.kastik.apps.core.model.aboard.SortType
 import com.kastik.apps.core.network.model.aboard.AnnouncementMeta
 import com.kastik.apps.core.network.model.aboard.AnnouncementPageResponse
 import com.kastik.apps.core.testing.dao.FakeAnnouncementDao

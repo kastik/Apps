@@ -1,7 +1,7 @@
 package com.kastik.apps.core.network.datasource
 
 
-import com.kastik.apps.core.model.user.SortType
+import com.kastik.apps.core.model.aboard.SortType
 import com.kastik.apps.core.testing.api.FakeAboardApiClient
 import com.kastik.apps.core.testing.testdata.announcementPageResponseTestData
 import kotlinx.coroutines.test.runTest

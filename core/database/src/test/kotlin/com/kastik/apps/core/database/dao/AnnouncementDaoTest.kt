@@ -4,7 +4,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingSource
 import androidx.paging.testing.TestPager
 import com.google.common.truth.Truth.assertThat
-import com.kastik.apps.core.model.user.SortType
+import com.kastik.apps.core.model.aboard.SortType
 import com.kastik.apps.core.testing.db.MemoryDatabase
 import com.kastik.apps.core.testing.runner.RoboDatabaseTestRunner
 import com.kastik.apps.core.testing.testdata.announcementBodyEntityTestData
@@ -15,7 +15,6 @@ import com.kastik.apps.core.testing.testdata.remoteKeys
 import com.kastik.apps.core.testing.testdata.tagEntitiesTestData
 import junit.framework.TestCase
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith

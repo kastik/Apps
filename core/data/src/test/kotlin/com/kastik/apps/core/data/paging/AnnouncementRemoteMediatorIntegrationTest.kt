@@ -6,7 +6,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.testing.asSnapshot
 import com.google.common.truth.Truth.assertThat
 import com.kastik.apps.core.database.relations.AnnouncementPreviewRelation
-import com.kastik.apps.core.model.user.SortType
+import com.kastik.apps.core.model.aboard.SortType
 import com.kastik.apps.core.testing.datasource.remote.FakeAnnouncementRemoteDataSource
 import com.kastik.apps.core.testing.db.MemoryDatabase
 import com.kastik.apps.core.testing.runner.RoboDatabaseTestRunner

@@ -3,7 +3,7 @@ package com.kastik.apps.core.data.mappers
 import com.google.common.truth.Truth.assertThat
 import com.kastik.apps.core.datastore.proto.Sort
 import com.kastik.apps.core.datastore.proto.Theme
-import com.kastik.apps.core.model.user.SortType
+import com.kastik.apps.core.model.aboard.SortType
 import com.kastik.apps.core.model.user.UserTheme
 import org.junit.Test
 

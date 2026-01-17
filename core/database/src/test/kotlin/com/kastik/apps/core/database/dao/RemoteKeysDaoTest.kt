@@ -1,13 +1,12 @@
 package com.kastik.apps.core.database.dao
 
-import com.kastik.apps.core.model.user.SortType
+import com.kastik.apps.core.model.aboard.SortType
 import com.kastik.apps.core.testing.db.MemoryDatabase
 import com.kastik.apps.core.testing.runner.RoboDatabaseTestRunner
 import com.kastik.apps.core.testing.testdata.noFilteredRemoteKeys
 import com.kastik.apps.core.testing.testdata.stringFilteredRemoteKeys
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 
