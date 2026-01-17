@@ -68,7 +68,10 @@ internal fun ProfileRoute(
         }
     ) { state ->
         when (state) {
-            is UiState.Loading -> LoadingContent(state.message, modifier = Modifier.fillMaxSize())
+            is UiState.Loading -> LoadingContent(
+                modifier = Modifier.fillMaxSize(),
+                message = state.message,
+            )
             is UiState.Error -> StatusContent(message = state.message)
             is UiState.SignedOut -> StatusContent(
                 message = state.message,

@@ -47,7 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.kastik.apps.core.domain.repository.SortType
+import com.kastik.apps.core.model.aboard.SortType
 import com.kastik.apps.core.model.user.UserTheme
 import com.kastik.apps.core.ui.extensions.LocalAnalytics
 import com.kastik.apps.core.ui.extensions.TrackScreenViewEvent
@@ -276,7 +276,10 @@ private fun SettingsScreenContent(
 
 @Composable
 private fun SettingSwitchRow(
-    title: String, subtitle: String? = null, checked: Boolean, onCheckedChange: (Boolean) -> Unit
+    title: String,
+    subtitle: String? = null,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
         modifier = Modifier

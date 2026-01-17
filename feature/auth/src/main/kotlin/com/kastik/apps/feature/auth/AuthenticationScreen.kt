@@ -28,8 +28,8 @@ internal fun AuthenticationRoute(
     ) { state ->
         when (state) {
             is UiState.Loading -> LoadingContent(
-                "Signing you in...",
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                message = "Signing you in...",
             )
 
             is UiState.Error -> StatusContent(

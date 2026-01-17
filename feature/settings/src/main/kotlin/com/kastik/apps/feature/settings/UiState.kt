@@ -1,6 +1,6 @@
 package com.kastik.apps.feature.settings
 
-import com.kastik.apps.core.domain.repository.SortType
+import com.kastik.apps.core.model.aboard.SortType
 import com.kastik.apps.core.model.user.UserTheme
 
 sealed class UiState {

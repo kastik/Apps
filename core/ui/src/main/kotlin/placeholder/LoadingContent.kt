@@ -24,10 +24,9 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LoadingContent(
+    modifier: Modifier = Modifier,
     message: String? = null,
     progressIndicatorSize: Dp = 64.dp,
-    modifier: Modifier = Modifier
-
 ) {
     Column(
         modifier = modifier
