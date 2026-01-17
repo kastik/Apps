@@ -14,6 +14,7 @@ import com.kastik.apps.core.network.datasource.ProfileRemoteDataSourceImpl
 import com.kastik.apps.core.network.datasource.TagsRemoteDataSource
 import com.kastik.apps.core.network.datasource.TagsRemoteDataSourceImpl
 import com.kastik.apps.core.network.interceptor.TokenInterceptor
+import com.kastik.apps.core.network.serializers.SortTypeQueryConverterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -102,6 +103,7 @@ object NetworkModule {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
             .baseUrl("https://aboard.iee.ihu.gr/api/v2/")
+            .addConverterFactory(SortTypeQueryConverterFactory())
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(json.asConverterFactory(contentType))
             .client(client)
@@ -169,6 +171,4 @@ class TokenProvider @Inject constructor(
                 started = SharingStarted.Eagerly,
                 initialValue = null
             )
-
-    fun getToken(): String? = token.value
 }

@@ -1,6 +1,7 @@
 package com.kastik.apps.core.network.api
 
 
+import com.kastik.apps.core.model.aboard.SortType
 import com.kastik.apps.core.network.model.aboard.AboardAuthTokenDto
 import com.kastik.apps.core.network.model.aboard.AnnouncementDto
 import com.kastik.apps.core.network.model.aboard.AnnouncementPageResponse
@@ -8,7 +9,7 @@ import com.kastik.apps.core.network.model.aboard.AuthorDto
 import com.kastik.apps.core.network.model.aboard.SingleAnnouncementResponse
 import com.kastik.apps.core.network.model.aboard.SubscribableTagsDto
 import com.kastik.apps.core.network.model.aboard.SubscribedTagDto
-import com.kastik.apps.core.network.model.aboard.TagsResponse
+import com.kastik.apps.core.network.model.aboard.TagsResponseDto
 import com.kastik.apps.core.network.model.aboard.UpdateUserSubscriptionsDto
 import com.kastik.apps.core.network.model.aboard.UserProfileDto
 import okhttp3.ResponseBody
@@ -24,7 +25,7 @@ import retrofit2.http.Streaming
 interface AboardApiClient {
     @GET("announcements")
     suspend fun getAnnouncements(
-        @Query("sortId") sortId: Int,
+        @Query("sortId") sortType: SortType,
         @Query("page") page: Int,
         @Query("perPage") perPage: Int,
         @Query("users[]") authorId: List<Int>? = null,
@@ -62,7 +63,7 @@ interface AboardApiClient {
 
     @GET("tags")
     suspend fun getTags(
-    ): TagsResponse
+    ): TagsResponseDto
 
     @GET("authors")
     suspend fun getAuthors(

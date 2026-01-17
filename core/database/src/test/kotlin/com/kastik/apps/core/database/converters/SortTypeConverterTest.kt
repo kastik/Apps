@@ -1,7 +1,7 @@
 package com.kastik.apps.core.database.converters
 
 import com.google.common.truth.Truth.assertThat
-import com.kastik.apps.core.model.user.SortType
+import com.kastik.apps.core.model.aboard.SortType
 import org.junit.Test
 
 
