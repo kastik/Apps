@@ -9,6 +9,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.navDeepLink
+import androidx.navigation.navOptions
 import androidx.navigation.toRoute
 import com.kastik.apps.feature.announcement.AnnouncementRoute
 import com.kastik.apps.feature.announcement.AnnouncementScreenViewModel
@@ -20,7 +21,10 @@ data class AnnouncementRoute(
 )
 
 fun NavController.navigateToAnnouncement(
-    navOptions: NavOptions, announcementId: Int
+    announcementId: Int,
+    navOptions: NavOptions = navOptions {
+        launchSingleTop = true
+    },
 ) = navigate(route = AnnouncementRoute(announcementId), navOptions)
 
 fun NavGraphBuilder.announcementScreen(

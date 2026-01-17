@@ -7,6 +7,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import androidx.navigation.navOptions
 import com.kastik.apps.feature.licenses.LicensesRoute
 import kotlinx.serialization.Serializable
 
@@ -15,7 +16,9 @@ import kotlinx.serialization.Serializable
 object LicensesRoute
 
 fun NavController.navigateToLicences(
-    navOptions: NavOptions,
+    navOptions: NavOptions = navOptions {
+        launchSingleTop = true
+    },
 ) = navigate(route = LicensesRoute, navOptions)
 
 

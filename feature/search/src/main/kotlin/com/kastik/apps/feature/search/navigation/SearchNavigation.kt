@@ -10,6 +10,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import androidx.navigation.navOptions
 import androidx.navigation.toRoute
 import com.kastik.apps.feature.search.SearchScreen
 import com.kastik.apps.feature.search.SearchScreenViewModel
@@ -23,7 +24,9 @@ data class SearchRoute(
 )
 
 fun NavController.navigateToSearch(
-    navOptions: NavOptions,
+    navOptions: NavOptions = navOptions {
+        launchSingleTop = true
+    },
     query: String = "",
     tags: List<Int> = emptyList(),
     authors: List<Int> = emptyList(),
