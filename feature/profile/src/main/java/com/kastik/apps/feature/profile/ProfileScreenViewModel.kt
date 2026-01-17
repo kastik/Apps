@@ -93,7 +93,7 @@ class ProfileScreenViewModel @Inject constructor(
             } catch (e: UnknownHostException) {
                 //TODO soft error
             } catch (e: Exception) {
-                signOutUserUseCase()
+                //TODO We need to check if  it's an auth error and if so sign out
             }
         }
     }
