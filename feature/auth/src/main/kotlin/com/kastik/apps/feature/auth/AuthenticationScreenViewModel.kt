@@ -10,9 +10,11 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel(assistedFactory = AuthenticationScreenViewModel.Factory::class)
 class AuthenticationScreenViewModel @AssistedInject constructor(
@@ -26,39 +28,29 @@ class AuthenticationScreenViewModel @AssistedInject constructor(
     private val subscribeToTagsUseCase: SubscribeToTagsUseCase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
-    val uiState: StateFlow<UiState> = _uiState
-
-    init {
-        onAuthRedirect(code, error, errorDesc)
-    }
-
-    fun onAuthRedirect(code: String?, error: String?, errorDesc: String?) {
+    val uiState: StateFlow<UiState> = flow {
         if (!error.isNullOrBlank()) {
-            _uiState.value = UiState.Error(error)
-            return
-        }
-        if (!errorDesc.isNullOrBlank()) {
-            _uiState.value = UiState.Error(errorDesc)
-            return
-        }
-        if (code.isNullOrBlank()) {
-            _uiState.value = UiState.Error("Something went wrong")
-            return
+            emit(UiState.Error(error))
+            return@flow
         }
 
-        viewModelScope.launch {
-            try {
-                exchangeCodeForToken(code)
-                refreshUserProfileUseCase()
-                refreshSubscriptionsUseCase()
-                //TODO Also re-subscribe to FCM Tags
-                _uiState.value = UiState.Success
-            } catch (e: Exception) {
-                _uiState.value = UiState.Error("Something went wrong")
-            }
+        if (code.isNullOrBlank()) {
+            emit(UiState.Error("Something went wrong"))
+            return@flow
         }
-    }
+
+        exchangeCodeForToken(code)
+        refreshUserProfileUseCase()
+        refreshSubscriptionsUseCase()
+        emit(UiState.Success)
+
+    }.catch {
+        emit(UiState.Error("Something went wrong"))
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = UiState.Loading
+    )
 
     @AssistedFactory
     interface Factory {

@@ -8,6 +8,6 @@ sealed class UiState {
     data class Success(
         val theme: UserTheme,
         val sortType: SortType,
-        val isDynamicColorEnabled: Boolean,
+        val dynamicColor: Boolean,
     ) : UiState()
 }

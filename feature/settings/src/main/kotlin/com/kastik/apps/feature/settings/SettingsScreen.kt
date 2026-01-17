@@ -77,7 +77,7 @@ internal fun SettingsRoute(
                     setTheme = viewModel::setTheme,
                     sortType = state.sortType,
                     setSortType = viewModel::setSortType,
-                    dynamicColorEnabled = state.isDynamicColorEnabled,
+                    dynamicColor = state.dynamicColor,
                     setDynamicColor = viewModel::setDynamicColor,
                     navigateToLicenses = navigateToLicenses
                 )
@@ -96,7 +96,7 @@ private fun SettingsScreenContent(
     setTheme: (UserTheme) -> Unit = {},
     sortType: SortType,
     setSortType: (SortType) -> Unit = {},
-    dynamicColorEnabled: Boolean,
+    dynamicColor: Boolean,
     setDynamicColor: (Boolean) -> Unit = {},
     navigateToLicenses: () -> Unit = {}
 ) {
@@ -185,7 +185,7 @@ private fun SettingsScreenContent(
                         SettingSwitchRow(
                             title = "Dynamic color",
                             subtitle = "Use colors from the wallpaper",
-                            checked = dynamicColorEnabled,
+                            checked = dynamicColor,
                             onCheckedChange = { enabled ->
                                 if (enabled) {
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.ToggleOn)
@@ -401,7 +401,7 @@ fun SettingsScreenPreview() {
     SettingsScreenContent(
         theme = UserTheme.FOLLOW_SYSTEM,
         setTheme = {},
-        dynamicColorEnabled = true,
+        dynamicColor = true,
         setDynamicColor = {},
         sortType = SortType.Priority,
         setSortType = {},
