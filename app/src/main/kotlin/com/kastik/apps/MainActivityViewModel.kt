@@ -22,7 +22,7 @@ class MainActivityViewModel @Inject constructor(
     ) { theme, dynamicColor ->
         IEEAppState(theme, dynamicColor)
     }.stateIn(
-        viewModelScope,
+        scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = IEEAppState(UserTheme.FOLLOW_SYSTEM, true)
     )
