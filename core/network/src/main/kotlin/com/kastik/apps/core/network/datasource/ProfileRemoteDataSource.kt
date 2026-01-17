@@ -14,7 +14,7 @@ interface ProfileRemoteDataSource {
 }
 
 internal class ProfileRemoteDataSourceImpl(
-    @param:AnnRetrofit private val aboardApiClient: AboardApiClient,
+    @AnnRetrofit private val aboardApiClient: AboardApiClient,
 ) : ProfileRemoteDataSource {
 
     override suspend fun getProfile(): UserProfileDto {

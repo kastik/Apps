@@ -7,6 +7,7 @@ import com.kastik.apps.core.datastore.proto.SubscribedTagsProto
 import com.kastik.apps.core.di.UserProfileDatastore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 interface ProfileLocalDataSource {
     fun getProfile(): Flow<ProfileProto>
@@ -17,8 +18,8 @@ interface ProfileLocalDataSource {
     suspend fun clearSubscriptions()
 }
 
-internal class ProfileLocalDataSourceImpl(
-    @param:UserProfileDatastore private val profileDataStore: DataStore<ProfileProto>,
+internal class ProfileLocalDataSourceImpl @Inject constructor(
+    @UserProfileDatastore private val profileDataStore: DataStore<ProfileProto>,
 ) : ProfileLocalDataSource {
 
     override fun getProfile(): Flow<ProfileProto> {

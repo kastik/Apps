@@ -9,6 +9,7 @@ import com.kastik.apps.core.di.AuthDatastore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 
 interface AuthenticationLocalDataSource {
@@ -32,8 +33,8 @@ interface AuthenticationLocalDataSource {
 
 }
 
-class AuthenticationLocalDataSourceImpl(
-    @param:AuthDatastore private val dataStore: DataStore<Preferences>
+internal class AuthenticationLocalDataSourceImpl @Inject constructor(
+    @AuthDatastore private val dataStore: DataStore<Preferences>
 ) : AuthenticationLocalDataSource {
     companion object {
         val APPS_ACCESS_TOKEN_KEY = stringPreferencesKey("apps_access_token")

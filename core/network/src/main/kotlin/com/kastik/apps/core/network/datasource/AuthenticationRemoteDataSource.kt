@@ -15,8 +15,8 @@ interface AuthenticationRemoteDataSource {
 
 
 internal class AuthenticationRemoteDataSourceImpl(
-    @param:AuthRetrofit private val appsApiClient: AppsApiClient,
-    @param:AnnRetrofit private val aboardApiClient: AboardApiClient,
+    @AuthRetrofit private val appsApiClient: AppsApiClient,
+    @AnnRetrofit private val aboardApiClient: AboardApiClient,
     private val clientId: String = "690a9861468c9b767cabdc40",
     private val clientSecret: String = "5tf8ehb9tie8guqmpluj2unkydoj2bj4dtvfxq1jdj6cghsac3",
 ) : AuthenticationRemoteDataSource {

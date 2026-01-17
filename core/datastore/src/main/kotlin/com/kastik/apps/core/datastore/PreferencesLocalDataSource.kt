@@ -7,6 +7,7 @@ import com.kastik.apps.core.datastore.proto.UserPreferences
 import com.kastik.apps.core.di.UserPrefsDatastore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 interface PreferencesLocalDataSource {
     fun getHasSkippedSignIn(): Flow<Boolean>
@@ -20,8 +21,8 @@ interface PreferencesLocalDataSource {
 
 }
 
-internal class PreferencesLocalDataSourceImpl(
-    @param:UserPrefsDatastore private val dataStore: DataStore<UserPreferences>
+internal class PreferencesLocalDataSourceImpl @Inject constructor(
+    @UserPrefsDatastore private val dataStore: DataStore<UserPreferences>
 ) : PreferencesLocalDataSource {
 
     override fun getHasSkippedSignIn(): Flow<Boolean> =

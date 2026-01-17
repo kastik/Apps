@@ -16,7 +16,6 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
         with(project) {
             with(pluginManager) {
                 apply("com.android.library")
-                apply("maven-publish")
             }
 
             extensions.configure<LibraryExtension> {
@@ -41,7 +40,8 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                         listOf(
                             "-opt-in=kotlin.RequiresOptIn",
                             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                            "-opt-in=kotlinx.coroutines.FlowPreview"
+                            "-opt-in=kotlinx.coroutines.FlowPreview",
+                            "-Xannotation-default-target=param-property"
                         )
                     )
                 }

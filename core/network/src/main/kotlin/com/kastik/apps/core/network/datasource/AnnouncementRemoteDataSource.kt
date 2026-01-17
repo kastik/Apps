@@ -1,7 +1,7 @@
 package com.kastik.apps.core.network.datasource
 
 import com.kastik.apps.core.di.AnnRetrofit
-import com.kastik.apps.core.domain.repository.SortType
+import com.kastik.apps.core.model.aboard.SortType
 import com.kastik.apps.core.network.api.AboardApiClient
 import com.kastik.apps.core.network.model.aboard.AnnouncementPageResponse
 import com.kastik.apps.core.network.model.aboard.SingleAnnouncementResponse
@@ -21,7 +21,7 @@ interface AnnouncementRemoteDataSource {
 }
 
 internal class AnnouncementRemoteDataSourceImpl(
-    @param:AnnRetrofit private val aboardApiClient: AboardApiClient
+    @AnnRetrofit private val aboardApiClient: AboardApiClient
 ) : AnnouncementRemoteDataSource {
     override suspend fun fetchPagedAnnouncements(
         page: Int,
@@ -34,7 +34,7 @@ internal class AnnouncementRemoteDataSourceImpl(
     ): AnnouncementPageResponse = aboardApiClient.getAnnouncements(
         page = page,
         perPage = perPage,
-        sortId = sortBy.ordinal,
+        sortType = sortBy,
         title = title?.ifEmpty { null },
         body = body?.ifEmpty { null },
         authorId = authorId,

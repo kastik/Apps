@@ -6,6 +6,7 @@ import com.kastik.apps.core.datastore.proto.SubscribableTagProto
 import com.kastik.apps.core.datastore.proto.SubscribableTagsProto
 import com.kastik.apps.core.di.UserSubscribableTagsDatastore
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
 interface TagsLocalDataSource {
     fun getSubscribableTags(): Flow<SubscribableTagsProto>
@@ -13,8 +14,8 @@ interface TagsLocalDataSource {
     suspend fun clearSubscribableTags()
 }
 
-internal class TagsLocalDataSourceImpl(
-    @param:UserSubscribableTagsDatastore private val dataStore: DataStore<SubscribableTagsProto>
+internal class TagsLocalDataSourceImpl @Inject constructor(
+    @UserSubscribableTagsDatastore private val dataStore: DataStore<SubscribableTagsProto>
 ) : TagsLocalDataSource {
 
     override fun getSubscribableTags(): Flow<SubscribableTagsProto> {

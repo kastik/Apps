@@ -9,7 +9,7 @@ interface AuthorRemoteDataSource {
 }
 
 internal class AuthorRemoteDataSourceImpl(
-    @param:AnnRetrofit private val aboardApiClient: AboardApiClient
+    @AnnRetrofit private val aboardApiClient: AboardApiClient
 ) : AuthorRemoteDataSource {
 
     override suspend fun fetchAuthors(): List<AuthorDto> =
