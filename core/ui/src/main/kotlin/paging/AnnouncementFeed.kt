@@ -13,7 +13,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
@@ -44,6 +46,7 @@ fun AnnouncementFeed(
 ) {
     val refreshState = lazyAnnouncements.loadState.refresh
     val appendState = lazyAnnouncements.loadState.append
+    val vibrator = LocalHapticFeedback.current
 
     LazyColumn(
         modifier = modifier
@@ -58,8 +61,14 @@ fun AnnouncementFeed(
             val item = lazyAnnouncements[index]
             item?.let {
                 AnnouncementCard(
-                    onClick = { onAnnouncementClick(item.id) },
-                    onLonClick = { onAnnouncementLongClick(item.id) },
+                    onClick = {
+                        vibrator.performHapticFeedback(HapticFeedbackType.Confirm)
+                        onAnnouncementClick(item.id)
+                    },
+                    onLonClick = {
+                        vibrator.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onAnnouncementLongClick(item.id)
+                    },
                     publisher = item.author,
                     title = item.title,
                     categories = remember(item.tags) { item.tags.map { it.title } },

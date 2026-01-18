@@ -29,8 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,7 +49,6 @@ fun AnnouncementCard(
     content: String,
     isPinned: Boolean
 ) {
-    val hapticFeedback = LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -62,7 +59,6 @@ fun AnnouncementCard(
         )
     )
 
-
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
@@ -71,16 +67,8 @@ fun AnnouncementCard(
             .combinedClickable(
                 interactionSource = interactionSource,
                 indication = LocalIndication.current,
-                onClick = {
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
-                    onClick()
-                },
-                onLongClick = {
-                    hapticFeedback.performHapticFeedback(
-                        HapticFeedbackType.LongPress
-                    )
-                    onLonClick()
-                }
+                onClick = onClick,
+                onLongClick = onLonClick
             ),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
