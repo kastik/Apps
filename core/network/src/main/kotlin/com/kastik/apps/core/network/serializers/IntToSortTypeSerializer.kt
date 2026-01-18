@@ -14,9 +14,9 @@ class SortTypeQueryConverterFactory : Converter.Factory() {
         if (type == SortType::class.java) {
             return Converter<SortType, String> { sortType ->
                 when (sortType) {
-                    SortType.Priority -> "1"
+                    SortType.Priority -> "0"
+                    SortType.DESC -> "1"
                     SortType.ASC -> "2"
-                    SortType.DESC -> "3"
                 }
             }
         }
