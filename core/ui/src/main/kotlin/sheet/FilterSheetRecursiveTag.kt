@@ -21,13 +21,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> GenericRecursiveSheet(
-    items: List<T>,
+    items: ImmutableList<T>,
     applySelectedTags: () -> Unit,
-    selectedRootIds: List<Int>,
+    selectedRootIds: ImmutableList<Int>,
     updateSelectedTagsIds: (List<Int>) -> Unit,
     sheetState: SheetState,
     onDismiss: () -> Unit,

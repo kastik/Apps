@@ -5,9 +5,12 @@ import com.kastik.apps.core.domain.repository.AnnouncementRepository
 import com.kastik.apps.core.domain.repository.UserPreferencesRepository
 import com.kastik.apps.core.model.aboard.Announcement
 import dagger.hilt.android.scopes.ViewModelScoped
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -49,13 +52,15 @@ class GetSearchQuickResultsAnnouncementsUseCase @Inject constructor(
     private val announcementRepository: AnnouncementRepository,
     private val userPreferencesRepository: UserPreferencesRepository
 ) {
-    operator fun invoke(query: String? = null): Flow<List<Announcement>> =
+    operator fun invoke(query: String? = null) =
         userPreferencesRepository.getSortType()
             .flatMapLatest { sortType ->
                 if (query.isNullOrBlank()) {
-                    flowOf(emptyList())
+                    flowOf(persistentListOf())
                 } else {
-                    announcementRepository.getAnnouncementsQuickResults(sortType, query)
+                    announcementRepository.getAnnouncementsQuickResults(sortType, query).map {
+                        it.toImmutableList()
+                    }
                 }
             }
 }

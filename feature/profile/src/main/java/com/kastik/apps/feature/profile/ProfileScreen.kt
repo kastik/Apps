@@ -50,6 +50,9 @@ import com.kastik.apps.core.ui.extensions.TrackScreenViewEvent
 import com.kastik.apps.core.ui.placeholder.LoadingContent
 import com.kastik.apps.core.ui.placeholder.StatusContent
 import com.kastik.apps.core.ui.sheet.GenericRecursiveSheet
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 
 @Composable
@@ -116,9 +119,9 @@ private fun SuccessState(
         if (uiState.showTagSheet) {
             uiState.subscribableTags?.let { tags ->
                 GenericRecursiveSheet(
-                    items = tags,
+                    items = tags.toImmutableList(),
                     applySelectedTags = applySelectedTags,
-                    selectedRootIds = emptyList(),
+                    selectedRootIds = persistentListOf(),
                     updateSelectedTagsIds = updateSelectedSubscribableTag,
                     sheetState = sheetState,
                     onDismiss = { showTagSheet(false) },
@@ -143,7 +146,7 @@ private fun SuccessState(
                 name = uiState.profile.name, email = uiState.profile.email
             )
             ProfileSubscribedTags(
-                subscribedTagTitles = uiState.subscribedTags.map { it.title },
+                subscribedTagTitles = uiState.subscribedTags.map { it.title }.toImmutableList(),
                 showTagSheet = showTagSheet
             )
             ProfileMeta(
@@ -283,7 +286,7 @@ private fun ProfilePicture(
 
 @Composable
 private fun ProfileSubscribedTags(
-    subscribedTagTitles: List<String>,
+    subscribedTagTitles: ImmutableList<String>,
     showTagSheet: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {

@@ -31,6 +31,8 @@ import com.kastik.apps.core.ui.announcement.AnnouncementCard
 import com.kastik.apps.core.ui.announcement.AnnouncementCardShimmer
 import com.kastik.apps.core.ui.placeholder.LoadingContent
 import com.kastik.apps.core.ui.placeholder.StatusContent
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.flowOf
 
 
@@ -71,7 +73,9 @@ fun AnnouncementFeed(
                     },
                     publisher = item.author,
                     title = item.title,
-                    categories = remember(item.tags) { item.tags.map { it.title } },
+                    categories = remember(item.tags) {
+                        item.tags.map { it.title }.toImmutableList()
+                    },
                     date = item.date,
                     content = remember(item.preview) { item.preview.orEmpty() },
                     isPinned = item.pinned
@@ -102,13 +106,13 @@ fun AnnouncementFeed(
 @Preview
 @Composable
 private fun AnnouncementFeedPreview() {
-    val sampleAnnouncements = listOf(
+    val sampleAnnouncements = persistentListOf(
         Announcement(
             id = 1,
             author = "Admin",
             title = "Welcome to AppsAboard!",
             date = "2024-01-01",
-            tags = listOf(Tag(1, "General"), Tag(2, "New")),
+            tags = persistentListOf(Tag(1, "General"), Tag(2, "New")),
             preview = "This is the first announcement.",
             pinned = true,
             body = "",
@@ -119,7 +123,7 @@ private fun AnnouncementFeedPreview() {
             author = "Admin",
             title = "Second Announcement",
             date = "2024-01-02",
-            tags = listOf(Tag(1, "General")),
+            tags = persistentListOf(Tag(1, "General")),
             preview = "This is the second announcement with a bit longer preview text to see how it renders.",
             pinned = false,
             body = "",

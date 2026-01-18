@@ -2,7 +2,7 @@ package com.kastik.apps.core.domain.usecases
 
 import com.kastik.apps.core.domain.repository.TagsRepository
 import com.kastik.apps.core.model.aboard.SubscribableTag
-import com.kastik.apps.core.model.aboard.Tag
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -10,8 +10,8 @@ import javax.inject.Inject
 class GetAnnouncementTagsUseCase @Inject constructor(
     private val tagsRepository: TagsRepository
 ) {
-    operator fun invoke(): Flow<List<Tag>> =
-        tagsRepository.getAnnouncementTags()
+    operator fun invoke() =
+        tagsRepository.getAnnouncementTags().map { it.toImmutableList() }
 }
 
 class RefreshAnnouncementTagsUseCase @Inject constructor(
@@ -43,7 +43,7 @@ class GetTagsQuickResults @Inject constructor(
         tagsRepository.getAnnouncementTags().map { tags ->
             tags.filter {
                 it.title.contains(query, ignoreCase = true)
-            }.take(5)
+            }.take(5).toImmutableList()
         }
 
 }

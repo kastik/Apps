@@ -26,13 +26,14 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.kastik.apps.core.ui.extensions.LocalAnalytics
+import kotlinx.collections.immutable.ImmutableList
 import java.text.Normalizer
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun <T> GenericFilterSheet(
-    items: List<T>,
-    selectedIds: List<Int>,
+    items: ImmutableList<T>,
+    selectedIds: ImmutableList<Int>,
     onApply: (List<Int>) -> Unit,
     sheetState: SheetState,
     onDismiss: () -> Unit,

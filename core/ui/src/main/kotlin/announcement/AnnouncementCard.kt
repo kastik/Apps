@@ -35,6 +35,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kastik.apps.core.designsystem.component.IEETag
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 
 @Composable
@@ -44,7 +46,7 @@ fun AnnouncementCard(
     onLonClick: () -> Unit = {},
     publisher: String,
     title: String,
-    categories: List<String>,
+    categories: ImmutableList<String>,
     date: String,
     content: String,
     isPinned: Boolean
@@ -142,7 +144,7 @@ fun PreviewAnnouncementCard() {
         onClick = {},
         publisher = "Kostas Papastathopoulos",
         title = "The quick brown fox",
-        categories = listOf("The", "Quick", "Brown", "Fox"),
+        categories = persistentListOf("The", "Quick", "Brown", "Fox"),
         date = "25-1-2019 08:34",
         content = "The quick brown fox jumps over the lazy dog",
         isPinned = false
@@ -156,7 +158,7 @@ fun PreviewPinnedAnnouncementCard() {
         onClick = {},
         publisher = "Kostas Papastathopoulos",
         title = "The quick brown fox",
-        categories = listOf("The", "Quick", "Brown", "Fox"),
+        categories = persistentListOf("The", "Quick", "Brown", "Fox"),
         date = "25-1-2019 08:34",
         content = "The quick brown fox jumps over the lazy dog",
         isPinned = true

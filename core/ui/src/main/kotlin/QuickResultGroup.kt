@@ -18,10 +18,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.kastik.apps.core.designsystem.theme.roundBottomShape
 import com.kastik.apps.core.designsystem.theme.roundTopShape
+import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 fun <T> QuickResultGroup(
-    items: List<T>,
+    items: ImmutableList<T>,
     icon: ImageVector,
     onItemClick: (T) -> Unit,
     labelProvider: (T) -> String,

@@ -1,16 +1,15 @@
 package com.kastik.apps.core.domain.usecases
 
 import com.kastik.apps.core.domain.repository.AuthorRepository
-import com.kastik.apps.core.model.aboard.Author
-import kotlinx.coroutines.flow.Flow
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class GetAuthorsUseCase @Inject constructor(
     private val authorRepository: AuthorRepository
 ) {
-    operator fun invoke(): Flow<List<Author>> =
-        authorRepository.getAuthors()
+    operator fun invoke() =
+        authorRepository.getAuthors().map { it.toImmutableList() }
 }
 
 class RefreshAuthorsUseCase @Inject constructor(
@@ -23,11 +22,11 @@ class RefreshAuthorsUseCase @Inject constructor(
 class GetAuthorQuickResultsUseCase @Inject constructor(
     private val authorRepository: AuthorRepository
 ) {
-    operator fun invoke(query: String): Flow<List<Author>> =
+    operator fun invoke(query: String) =
         authorRepository.getAuthors().map { authors ->
             authors.filter {
                 it.name.contains(query, ignoreCase = true)
-            }.take(5)
+            }.take(5).toImmutableList()
 
         }
 }

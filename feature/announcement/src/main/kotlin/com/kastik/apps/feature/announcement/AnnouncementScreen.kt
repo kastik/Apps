@@ -55,6 +55,9 @@ import com.kastik.apps.core.ui.extensions.TrackAnnouncementOpened
 import com.kastik.apps.core.ui.extensions.TrackScreenViewEvent
 import com.kastik.apps.core.ui.placeholder.LoadingContent
 import com.kastik.apps.core.ui.placeholder.StatusContent
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -85,8 +88,8 @@ internal fun AnnouncementRoute(
                 author = state.announcement.author,
                 date = state.announcement.date,
                 body = state.announcement.body,
-                tags = state.announcement.tags,
-                attachments = state.announcement.attachments,
+                tags = state.announcement.tags.toImmutableList(),
+                attachments = state.announcement.attachments.toImmutableList(),
                 navigateBack = navigateBack,
                 onAttachmentClick = viewModel::downloadAttachment
             )
@@ -105,8 +108,8 @@ private fun SuccessState(
     author: String,
     date: String,
     body: String,
-    tags: List<Tag>,
-    attachments: List<Attachment>,
+    tags: ImmutableList<Tag>,
+    attachments: ImmutableList<Attachment>,
     onAttachmentClick: (Int, Int, String, String) -> Unit,
     navigateBack: () -> Unit,
 ) {
@@ -259,12 +262,12 @@ fun SuccessStatePreview() {
         author = "Kostas Papastathopoulos",
         date = "2/10/2025",
         body = "The body of the announcement.",
-        tags = listOf(
+        tags = persistentListOf(
             Tag(id = 1, title = "Tag 1"),
             Tag(id = 2, title = "Tag 3"),
             Tag(id = 3, title = "Tag 2"),
         ),
-        attachments = listOf(
+        attachments = persistentListOf(
             Attachment(
                 id = 1, filename = "Attachment 1", fileSize = 1000, mimeType = "TODO()"
             ),

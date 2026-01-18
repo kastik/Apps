@@ -7,6 +7,7 @@ kotlin = "2.2.21"
 coreKtx = "1.17.0"
 coroutines = "1.10.2"
 kotlinxSerialization = "1.9.0"
+kotlinx-collections = "0.4.0"
 
 okhttp = "5.3.1"
 retrofit = "3.0.0"
@@ -74,6 +75,8 @@ accompanist-permissions = { module = "com.google.accompanist:accompanist-permiss
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinx-collections" }
+
 
 #Material
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -186,6 +189,7 @@ performance-gradlePlugin = { id = "com.google.firebase.firebase-perf", version.r
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "androidx-macro-benchmark" }
 android-test = { id = "com.android.test", version.ref = "agp" }
 aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutLibraries" }
+stability-analyzer = { id = "com.github.skydoves.compose.stability.analyzer", version = "0.6.6" }
 
 
 ####### Convention plugins #######

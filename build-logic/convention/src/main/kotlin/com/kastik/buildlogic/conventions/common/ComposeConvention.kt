@@ -13,6 +13,10 @@ fun Project.configureAndroidCompose(
 ) {
     val libs = project.libs
 
+    libs.findPlugin("stability-analyzer").ifPresent {
+        pluginManager.apply(it.get().pluginId)
+    }
+
     extension.apply {
         buildFeatures.compose = true
         composeOptions.kotlinCompilerExtensionVersion = "1.5.15"
