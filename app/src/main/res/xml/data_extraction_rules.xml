@@ -1,29 +1,22 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
--->
+<?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
-    <cloud-backup>
-        <exclude
-            domain="database"
-            path="announcement_cache.db" />
-        <exclude
-            domain="database"
-            path="announcement_cache.db-wal" />
-        <exclude
-            domain="database"
-            path="announcement_cache.db-shm" />
+
+    <cloud-backup disableIfNoEncryptionCapabilities="false">
+        <include
+            domain="file"
+            path="datastore/user_prefs.pb" />
     </cloud-backup>
+
     <device-transfer>
-        <exclude
-            domain="database"
-            path="announcement_cache.db" />
-        <exclude
-            domain="database"
-            path="announcement_cache.db-wal" />
-        <exclude
-            domain="database"
-            path="announcement_cache.db-shm" />
+        <include
+            domain="file"
+            path="datastore/user_prefs.pb" />
     </device-transfer>
+
+    <cross-platform-transfer platform="ios">
+        <include
+            domain="file"
+            path="datastore/user_prefs.pb" />
+    </cross-platform-transfer>
+
 </data-extraction-rules>
