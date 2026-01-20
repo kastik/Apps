@@ -1,206 +1,107 @@
 package com.kastik.apps.feature.search
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import androidx.paging.cachedIn
-import com.kastik.apps.core.domain.usecases.GetAnnouncementTagsUseCase
-import com.kastik.apps.core.domain.usecases.GetAuthorQuickResultsUseCase
-import com.kastik.apps.core.domain.usecases.GetAuthorsUseCase
+import com.kastik.apps.core.domain.usecases.GetFilterOptionsUseCase
 import com.kastik.apps.core.domain.usecases.GetPagedFilteredAnnouncementsUseCase
-import com.kastik.apps.core.domain.usecases.GetSearchQuickResultsAnnouncementsUseCase
-import com.kastik.apps.core.domain.usecases.GetTagsQuickResults
-import com.kastik.apps.core.domain.usecases.RefreshAnnouncementTagsUseCase
-import com.kastik.apps.core.domain.usecases.RefreshAuthorsUseCase
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import com.kastik.apps.core.domain.usecases.GetQuickResultsUseCase
+import com.kastik.apps.core.domain.usecases.RefreshFilterOptionsUseCase
+import com.kastik.apps.feature.search.navigation.SearchRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-@HiltViewModel(assistedFactory = SearchScreenViewModel.Factory::class)
-class SearchScreenViewModel @AssistedInject constructor(
-    @Assisted("query") private val query: String,
-    @Assisted("tag_ids") private val selectedTagIds: List<Int>,
-    @Assisted("author_ids") private val selectedAuthorIds: List<Int>,
+@HiltViewModel
+class SearchScreenViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val getQuickResultsUseCase: GetQuickResultsUseCase,
+    private val getFilterOptionsUseCase: GetFilterOptionsUseCase,
+    private val refreshFilterOptionsUseCase: RefreshFilterOptionsUseCase,
     private val getFilteredAnnouncementsUseCase: GetPagedFilteredAnnouncementsUseCase,
-    private val getAnnouncementTagsUseCase: GetAnnouncementTagsUseCase,
-    private val getAuthorsUseCase: GetAuthorsUseCase,
-    private val refreshAuthorsUseCase: RefreshAuthorsUseCase,
-    private val refreshAnnouncementTagsUseCase: RefreshAnnouncementTagsUseCase,
-    private val getTagsQuickResults: GetTagsQuickResults,
-    private val getAuthorQuickResultsUseCase: GetAuthorQuickResultsUseCase,
-    private val getSearchQuickResultsAnnouncementsUseCase: GetSearchQuickResultsAnnouncementsUseCase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(
-        UiState(
-            searchResults = getFilteredAnnouncementsUseCase(
-                query,
-                selectedAuthorIds,
-                selectedTagIds
-            ).cachedIn(viewModelScope)
+    private val _availableFilters = getFilterOptionsUseCase().onStart {
+        viewModelScope.launch {
+            runCatching { refreshFilterOptionsUseCase() }
+        }
+    }
+
+    private val args = savedStateHandle.toRoute<SearchRoute>()
+
+    private val _activeFilters = MutableStateFlow(
+        ActiveFilters(
+            activeQuery = args.query,
+            committedQuery = args.query,
+            selectedTagIds = args.tags.toImmutableList(),
+            selectedAuthorIds = args.authors.toImmutableList()
         )
     )
-    val uiState: StateFlow<UiState> = _uiState
+    private val _quickSearchResults =
+        _activeFilters.map { it.activeQuery }.flatMapLatest { activeQuery ->
+            getQuickResultsUseCase(activeQuery)
+        }
 
-    private var quickResultsJob: Job? = null
-
-    init {
-        getTags()
-        getAuthors()
-        refreshData()
-        updateQuery(query)
-        updateSelectedTagIds(selectedTagIds)
-        updateSelectedAuthorIdsIds(selectedAuthorIds)
+    val searchFeedAnnouncements = _activeFilters.flatMapLatest { activeFilters ->
+        getFilteredAnnouncementsUseCase(
+            activeFilters.committedQuery,
+            activeFilters.selectedAuthorIds,
+            activeFilters.selectedTagIds
+        ).cachedIn(
+            viewModelScope
+        )
     }
 
-    fun updateQuickResults(
-        query: String
-    ) {
-        quickResultsJob?.cancel()
-        quickResultsJob = viewModelScope.launch {
-            combine(
-                getTagsQuickResults(query),
-                getAuthorQuickResultsUseCase(query),
-                getSearchQuickResultsAnnouncementsUseCase(query)
-            ) { tags, authors, announcements ->
-                _uiState.update {
-                    it.copy(
-                        tagsQuickResults = tags,
-                        authorQuickResults = authors,
-                        announcementQuickResults = announcements
-                    )
-                }
-            }.collect()
+    val uiState = combine(
+        _availableFilters,
+        _activeFilters,
+        _quickSearchResults
+    ) { availableFilters, activeFilters, quickResults ->
+        UiState(
+            availableFilters = availableFilters,
+            activeFilters = activeFilters,
+            quickResults = quickResults
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = UiState()
+    )
+
+
+    fun updateActiveQuery(query: String) {
+        _activeFilters.update { activeFilters ->
+            activeFilters.copy(activeQuery = query)
         }
     }
 
-    fun toggleTagSheet() {
-        _uiState.value = _uiState.value.copy(
-            showTagSheet = !_uiState.value.showTagSheet
-        )
-    }
-
-    fun toggleAuthorSheet() {
-        _uiState.value = _uiState.value.copy(
-            showAuthorSheet = !_uiState.value.showAuthorSheet
-        )
-    }
-
-    fun refreshData() {
-        viewModelScope.launch {
-            async {
-                runCatching { refreshAuthorsUseCase() }
-                runCatching { refreshAnnouncementTagsUseCase() }
-            }
-
+    fun commitQuery(query: String) {
+        _activeFilters.update { activeFilters ->
+            activeFilters.copy(committedQuery = query)
         }
     }
 
-    fun getAuthors() {
-        viewModelScope.launch {
-            try {
-                getAuthorsUseCase().collect {
-                    _uiState.value = _uiState.value.copy(
-                        authors = it
-                    )
-                }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    authors = emptyList()
-                )
-            }
-
+    fun updateSelectedTagIds(tagIds: ImmutableList<Int>) {
+        _activeFilters.update { activeFilters ->
+            activeFilters.copy(selectedTagIds = tagIds)
         }
     }
 
-    fun getTags() {
-        viewModelScope.launch {
-            try {
-                getAnnouncementTagsUseCase().collect {
-                    _uiState.value = _uiState.value.copy(
-                        tags = it
-                    )
-                }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    tags = emptyList()
-                )
-            }
-
+    fun updateSelectedAuthorIds(authorIds: ImmutableList<Int>) {
+        _activeFilters.update { activeFilters ->
+            activeFilters.copy(selectedAuthorIds = authorIds)
         }
     }
-
-    fun updateQuery(newQuery: String) {
-        _uiState.value = _uiState.value.copy(
-            query = newQuery
-        )
-        updateSearchResults()
-    }
-
-    fun updateSelectedTagIds(newTags: List<Int>) {
-        _uiState.value = _uiState.value.copy(
-            selectedTagIds = newTags
-        )
-        updateSearchResults()
-
-    }
-
-    fun updateSelectedAuthorIdsIds(newAuthors: List<Int>) {
-        _uiState.value = _uiState.value.copy(
-            selectedAuthorIds = newAuthors
-        )
-        updateSearchResults()
-    }
-
-    fun updateSearchResults(
-        query: String,
-        tagIds: List<Int>,
-        authorIds: List<Int>
-    ) {
-        _uiState.value = _uiState.value.copy(
-            query = query,
-            selectedTagIds = tagIds,
-            selectedAuthorIds = authorIds
-
-        )
-        updateSearchResults()
-    }
-
-    private fun updateSearchResults() {
-        viewModelScope.launch {
-            if (false
-            //(uiState.value.query.trim().isBlank()) && uiState.value.selectedAuthorIds.isEmpty() && uiState.value.selectedTagIds.isEmpty()
-            ) {
-                // _uiState.value = _uiState.value.copy(searchResults = null,)
-            } else {
-                _uiState.value = _uiState.value.copy(
-                    searchResults = getFilteredAnnouncementsUseCase(
-                        query = _uiState.value.query,
-                        authorIds = _uiState.value.selectedAuthorIds.toList(),
-                        tagIds = _uiState.value.selectedTagIds.toList()
-                    ).cachedIn(
-                        viewModelScope
-                    )
-                )
-            }
-        }
-    }
-
-    @AssistedFactory
-    interface Factory {
-        fun create(
-            @Assisted("query") query: String,
-            @Assisted("tag_ids") selectedTagIds: List<Int>,
-            @Assisted("author_ids") selectedAuthorIds: List<Int>,
-        ): SearchScreenViewModel
-    }
-
 }

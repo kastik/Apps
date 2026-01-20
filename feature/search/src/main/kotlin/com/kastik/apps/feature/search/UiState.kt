@@ -1,21 +1,19 @@
 package com.kastik.apps.feature.search
 
-import androidx.paging.PagingData
-import com.kastik.apps.core.model.aboard.Announcement
-import com.kastik.apps.core.model.aboard.Author
-import com.kastik.apps.core.model.aboard.Tag
-import kotlinx.coroutines.flow.Flow
+import com.kastik.apps.core.model.search.FilterOptions
+import com.kastik.apps.core.model.search.QuickResults
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 data class UiState(
-    val searchResults: Flow<PagingData<Announcement>>,
-    val query: String = "",
-    val tags: List<Tag> = emptyList(),
-    val selectedTagIds: List<Int> = emptyList(),
-    val authors: List<Author> = emptyList(),
-    val selectedAuthorIds: List<Int> = emptyList(),
-    val showTagSheet: Boolean = false,
-    val showAuthorSheet: Boolean = false,
-    val announcementQuickResults: List<Announcement> = emptyList(),
-    val tagsQuickResults: List<Tag> = emptyList(),
-    val authorQuickResults: List<Author> = emptyList()
+    val activeFilters: ActiveFilters = ActiveFilters(),
+    val availableFilters: FilterOptions = FilterOptions(),
+    val quickResults: QuickResults = QuickResults(),
+)
+
+data class ActiveFilters(
+    val activeQuery: String = "",
+    val committedQuery: String = "",
+    val selectedTagIds: ImmutableList<Int> = persistentListOf(),
+    val selectedAuthorIds: ImmutableList<Int> = persistentListOf(),
 )

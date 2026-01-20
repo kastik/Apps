@@ -1,16 +1,16 @@
 package com.kastik.apps.feature.home
 
-import com.kastik.apps.core.model.aboard.Announcement
-import com.kastik.apps.core.model.aboard.Author
-import com.kastik.apps.core.model.aboard.Tag
+import com.kastik.apps.core.model.search.FilterOptions
+import com.kastik.apps.core.model.search.QuickResults
 
 data class UiState(
     val isSignedIn: Boolean = false,
     val showSignInNotice: Boolean = false,
-    val tags: List<Tag> = emptyList(),
-    val authors: List<Author> = emptyList(),
-    val announcementQuickResults: List<Announcement> = emptyList(),
-    val tagsQuickResults: List<Tag> = emptyList(),
-    val authorQuickResults: List<Author> = emptyList(),
-    val expandedSearchBar: Boolean = false,
+    val availableFilters: FilterOptions = FilterOptions(),
+    val activeFilters: ActiveFilters = ActiveFilters(),
+    val quickResults: QuickResults = QuickResults(),
+)
+
+data class ActiveFilters(
+    val activeQuery: String = "",
 )
