@@ -1,130 +1,109 @@
 package com.kastik.apps.feature.search
 
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.delete
+import androidx.compose.runtime.snapshotFlow
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import androidx.paging.cachedIn
-import com.kastik.apps.core.analytics.Analytics
-import com.kastik.apps.core.domain.usecases.GetAuthorsUseCase
+import com.kastik.apps.core.domain.usecases.GetFilterOptionsUseCase
 import com.kastik.apps.core.domain.usecases.GetPagedFilteredAnnouncementsUseCase
-import com.kastik.apps.core.domain.usecases.GetTagsUseCase
+import com.kastik.apps.core.domain.usecases.GetQuickResultsUseCase
+import com.kastik.apps.core.domain.usecases.RefreshFilterOptionsUseCase
+import com.kastik.apps.core.ui.topbar.ActiveFilters
+import com.kastik.apps.feature.search.navigation.SearchRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SearchScreenViewModel @Inject constructor(
-    private val analytics: Analytics,
+    savedStateHandle: SavedStateHandle,
+    private val getQuickResultsUseCase: GetQuickResultsUseCase,
+    private val getFilterOptionsUseCase: GetFilterOptionsUseCase,
+    private val refreshFilterOptionsUseCase: RefreshFilterOptionsUseCase,
     private val getFilteredAnnouncementsUseCase: GetPagedFilteredAnnouncementsUseCase,
-    private val getTagsUseCase: GetTagsUseCase,
-    private val getAuthorsUseCase: GetAuthorsUseCase,
 ) : ViewModel() {
-    init {
-        getAuthors()
-        getTags()
-    }
 
-    private val _uiState = MutableStateFlow(UiState())
-    val uiState: StateFlow<UiState> = _uiState
+    private val args = savedStateHandle.toRoute<SearchRoute>()
+    val searchBarTextFieldState = TextFieldState(
+        initialText = args.query
+    )
 
-    fun onScreenViewed() {
-        analytics.logScreenView("search_screen")
-    }
-
-    fun toggleTagSheet() {
-        _uiState.value = _uiState.value.copy(
-            showTagSheet = !_uiState.value.showTagSheet
-        )
-    }
-
-    fun toggleAuthorSheet() {
-        _uiState.value = _uiState.value.copy(
-            showAuthorSheet = !_uiState.value.showAuthorSheet
-        )
-    }
-
-
-    fun getAuthors() {
+    private val _availableFilters = getFilterOptionsUseCase().onStart {
         viewModelScope.launch {
-            try {
-                getAuthorsUseCase().collect {
-                    _uiState.value = _uiState.value.copy(
-                        authors = it
-                    )
-                }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    authors = null
-                )
-            }
-
-        }
-    }
-
-    fun getTags() {
-        viewModelScope.launch {
-            try {
-                getTagsUseCase().collect {
-                    _uiState.value = _uiState.value.copy(
-                        tags = it
-                    )
-                }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    tags = null
-                )
-            }
-
-        }
-    }
-
-    fun updateQuery(newQuery: String) {
-        _uiState.value = _uiState.value.copy(
-            query = newQuery
-        )
-        updateSearchResults()
-    }
-
-    fun updateSelectedTagIds(newTags: List<Int>) {
-        _uiState.value = _uiState.value.copy(
-            selectedTagIds = newTags
-        )
-        updateSearchResults()
-
-    }
-
-    fun updateSelectedAuthorIdsIds(newAuthors: List<Int>) {
-        _uiState.value = _uiState.value.copy(
-            selectedAuthorIds = newAuthors
-        )
-        updateSearchResults()
-    }
-
-    private fun updateSearchResults() {
-        viewModelScope.launch {
-            if ((uiState.value.query.trim()
-                    .isBlank()) && uiState.value.selectedAuthorIds.isEmpty() && uiState.value.selectedTagIds.isEmpty()
-            ) {
-                _uiState.value = _uiState.value.copy(
-                    searchResults = null,
-                )
-            } else {
-                _uiState.value = _uiState.value.copy(
-                    searchResults = getFilteredAnnouncementsUseCase(
-                        uiState.value.query,
-                        uiState.value.selectedAuthorIds,
-                        uiState.value.selectedTagIds
-                    ).cachedIn(
-                        viewModelScope
-                    )
-                )
-            }
+            runCatching { refreshFilterOptionsUseCase() }
         }
     }
 
 
+    private val _quickSearchResultsState = snapshotFlow { searchBarTextFieldState.text }
+        .map { it.toString() }
+        .flatMapLatest { query ->
+            getQuickResultsUseCase(query)
+        }
+
+    private val _activeFeedFilters = MutableStateFlow(
+        ActiveFilters(
+            committedQuery = args.query,
+            selectedTagIds = args.tags.toImmutableList(),
+            selectedAuthorIds = args.authors.toImmutableList()
+        )
+    )
+
+    val searchFeedAnnouncements = _activeFeedFilters.flatMapLatest { activeFilters ->
+        getFilteredAnnouncementsUseCase(
+            activeFilters.committedQuery,
+            activeFilters.selectedAuthorIds,
+            activeFilters.selectedTagIds
+        ).cachedIn(
+            viewModelScope
+        )
+    }
+
+    val uiState = combine(
+        _availableFilters,
+        _activeFeedFilters,
+        _quickSearchResultsState
+    ) { availableFilters, activeFilters, quickResults ->
+        UiState(
+            availableFilters = availableFilters,
+            activeFilters = activeFilters,
+            quickResults = quickResults
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = UiState()
+    )
+
+    fun onSearch(
+        query: String,
+        tagsId: ImmutableList<Int>,
+        authorIds: ImmutableList<Int>
+    ) {
+        searchBarTextFieldState.edit {
+            delete(0, length)
+            append(query)
+        }
+        _activeFeedFilters.update { filters ->
+            filters.copy(
+                committedQuery = query,
+                selectedTagIds = tagsId,
+                selectedAuthorIds = authorIds
+            )
+        }
+    }
 }
-
-
-

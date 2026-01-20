@@ -1,51 +1,41 @@
 package com.kastik.apps.feature.announcement
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.fromHtml
@@ -55,9 +45,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kastik.apps.core.designsystem.utils.TrackScreenViewEvent
-import com.kastik.apps.core.model.aboard.AnnouncementAttachment
-import com.kastik.apps.core.model.aboard.AnnouncementTag
+import com.kastik.apps.core.designsystem.component.IEEDotDivider
+import com.kastik.apps.core.designsystem.component.IEETag
+import com.kastik.apps.core.model.aboard.Attachment
+import com.kastik.apps.core.model.aboard.Tag
+import com.kastik.apps.core.ui.extensions.LocalAnalytics
+import com.kastik.apps.core.ui.extensions.TrackAnnouncementOpened
+import com.kastik.apps.core.ui.extensions.TrackScreenViewEvent
+import com.kastik.apps.core.ui.extensions.shareAnnouncement
+import com.kastik.apps.core.ui.placeholder.LoadingContent
+import com.kastik.apps.core.ui.placeholder.StatusContent
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -66,153 +66,125 @@ internal fun AnnouncementRoute(
     navigateBack: () -> Unit,
     viewModel: AnnouncementScreenViewModel = hiltViewModel(),
 ) {
-
     TrackScreenViewEvent("announcement_screen")
-
-    LaunchedEffect(Unit) {
-        viewModel.getAnnouncement(announcementId)
-    }
+    TrackAnnouncementOpened(announcementId)
 
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
-    when (val state = uiState.value) {
-        UiState.Error -> {
-            AnnouncementScreenContentError()
-        }
+    AnimatedContent(
+        targetState = uiState.value,
+    ) { state ->
+        when (state) {
+            is UiState.Loading -> LoadingContent(
+                modifier = Modifier.fillMaxSize(),
+                message = "Fetching announcement...",
+            )
 
-        UiState.Loading -> {
-            AnnouncementScreenContentLoading()
-        }
+            is UiState.Error -> StatusContent(message = state.message)
 
-        is UiState.Success -> {
-            AnnouncementScreenContentSuccess(
-                announcementId = announcementId,
+            is UiState.Success -> SuccessState(
+                announcementId = state.announcement.id,
                 title = state.announcement.title,
                 author = state.announcement.author,
                 date = state.announcement.date,
                 body = state.announcement.body,
-                tags = state.announcement.tags,
-                attachments = state.announcement.attachments,
+                tags = state.announcement.tags.toImmutableList(),
+                attachments = state.announcement.attachments.toImmutableList(),
                 navigateBack = navigateBack,
-                onAttachmentClick = { attachmentId, filename ->
+                onAttachmentClick = viewModel::downloadAttachment
+            )
 
-                })
         }
     }
+
+
 }
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun AnnouncementScreenContentLoading() {
-    Surface {
-        Box(
-            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CircularWavyProgressIndicator(
-                    modifier = Modifier.size(64.dp),
-                    color = MaterialTheme.colorScheme.secondary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                )
-                Text(text = "Fetching announcement...")
-            }
-        }
-    }
-}
-
-
-@Composable
-private fun AnnouncementScreenContentError() {
-    Surface {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("Something went wrong")
-        }
-    }
-}
-
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun AnnouncementScreenContentSuccess(
+private fun SuccessState(
     announcementId: Int,
     title: String,
     author: String,
     date: String,
     body: String,
-    tags: List<AnnouncementTag>,
-    attachments: List<AnnouncementAttachment>,
-    onAttachmentClick: (Int, String) -> Unit,
+    tags: ImmutableList<Tag>,
+    attachments: ImmutableList<Attachment>,
+    onAttachmentClick: (Int, Int, String, String) -> Unit,
     navigateBack: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val analytics = LocalAnalytics.current
     val scroll = rememberScrollState()
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeFlexibleTopAppBar(
-                title = {
-                    Text(
-                        text = title,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.SemiBold,
-                        ), color = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = navigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Localized description"
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        }) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp)
-                .verticalScroll(scroll), verticalArrangement = Arrangement.spacedBy(24.dp)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(scroll), verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+
+        Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround,
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Text(
+                modifier = Modifier.weight(1f),
+                text = AnnotatedString.fromHtml(title),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                ), color = MaterialTheme.colorScheme.onSurface
+            )
+            IconButton(
+                onClick = { context.shareAnnouncement(announcementId) }
             ) {
                 Icon(
-                    Icons.Outlined.Person,
+                    Icons.Outlined.Share,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
-                    modifier = Modifier.size(18.dp)
-                )
-                Text(
-                    text = author,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                DotDivider()
-
-                Text(
-                    text = date,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
                 )
             }
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
+        }
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Outlined.Person,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = author,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            IEEDotDivider()
+
+            Text(
+                text = date,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
+                SelectionContainer {
                     Text(
                         text = AnnotatedString.fromHtml(body),
                         style = MaterialTheme.typography.bodyLarge.copy(
@@ -222,149 +194,91 @@ private fun AnnouncementScreenContentSuccess(
                     )
                 }
             }
-
-            if (attachments.isNotEmpty()) {
-                Text(
-                    text = "Attachments",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    attachments.forEach { attachment ->
-                        AssistChip(onClick = {
-                            onAttachmentClick(
-                                attachment.id, attachment.filename
-                            )
-                        }, label = { Text(attachment.filename) }, leadingIcon = {
-                            Icon(
-                                Icons.Outlined.AttachFile,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        })
-                    }
-                }
-            }
-
-            if (tags.isNotEmpty()) {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-                Text(
-                    text = "Tags",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    tags.forEach { tag ->
-                        FunkyTagChip(text = tag.title)
-                    }
-                }
-            }
         }
-    }
-}
 
-
-@Composable
-private fun DotDivider() {
-    Box(
-        modifier = Modifier
-            .size(4.dp)
-            .background(
-                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), shape = CircleShape
-            )
-    )
-}
-
-@Composable
-fun FunkyTagChip(
-    text: String, modifier: Modifier = Modifier, onClick: () -> Unit = {}
-) {
-    val shape = RoundedCornerShape(
-        topStart = 18.dp, topEnd = 6.dp, bottomEnd = 18.dp, bottomStart = 6.dp
-    )
-
-    val background = MaterialTheme.colorScheme.secondaryContainer
-    val contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-
-    var pressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (pressed) 0.94f else 1f, label = "scale")
-
-    Surface(
-        modifier = modifier
-            .clip(shape)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = {},
-                onLongClickLabel = null,
-            )
-            .scale(scale),
-        color = background,
-        contentColor = contentColor,
-        tonalElevation = 2.dp,
-        shadowElevation = 3.dp,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        if (attachments.isNotEmpty()) {
             Text(
-                text, style = MaterialTheme.typography.labelLarge, maxLines = 1
+                text = "Attachments",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
             )
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                attachments.forEach { attachment ->
+                    AssistChip(onClick = {
+                        analytics.logEvent(
+                            "attachment_clicked",
+                            mapOf("attachment_id" to attachment.id)
+                        )
+                        onAttachmentClick(
+                            announcementId,
+                            attachment.id,
+                            attachment.filename,
+                            attachment.mimeType,
+                        )
+                    }, label = { Text(attachment.filename) }, leadingIcon = {
+                        Icon(
+                            Icons.Outlined.AttachFile,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    })
+                }
+            }
         }
+
+        if (tags.isNotEmpty()) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+            Text(
+                text = "Tags",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                tags.forEach { tag ->
+                    IEETag(text = tag.title)
+                }
+            }
+        }
+        Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
     }
 }
 
 @Preview
 @Composable
-fun AnnouncementScreenContentSuccessPreview() {
-    AnnouncementScreenContentSuccess(
+fun SuccessStatePreview() {
+    SuccessState(
         announcementId = 1,
         title = "Announcement Title",
         author = "Kostas Papastathopoulos",
         date = "2/10/2025",
         body = "The body of the announcement.",
-        tags = listOf(
-            AnnouncementTag(id = 1, title = "Tag 1"),
-            AnnouncementTag(id = 2, title = "Tag 3"),
-            AnnouncementTag(id = 3, title = "Tag 2"),
+        tags = persistentListOf(
+            Tag(id = 1, title = "Tag 1"),
+            Tag(id = 2, title = "Tag 3"),
+            Tag(id = 3, title = "Tag 2"),
         ),
-        attachments = listOf(
-            AnnouncementAttachment(
+        attachments = persistentListOf(
+            Attachment(
                 id = 1, filename = "Attachment 1", fileSize = 1000, mimeType = "TODO()"
             ),
-            AnnouncementAttachment(
+            Attachment(
                 id = 2, filename = "Attachment 2", fileSize = 1000, mimeType = "TODO()"
             ),
-            AnnouncementAttachment(
+            Attachment(
                 id = 3, filename = "Attachment 3", fileSize = 1000, mimeType = "TODO()"
             ),
         ),
         navigateBack = {},
-        onAttachmentClick = { _, _ ->
+        onAttachmentClick = { _, _, _, _ ->
         })
 }
-
-@Preview
-@Composable
-fun AnnouncementScreenContentFailPreview() {
-    AnnouncementScreenContentError()
-}
-
-@Preview
-@Composable
-fun AnnouncementScreenContentLoadingPreview() {
-    AnnouncementScreenContentLoading()
-}
-
-
-

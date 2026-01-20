@@ -7,7 +7,9 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import androidx.navigation.navOptions
 import com.kastik.apps.feature.home.HomeScreenRoute
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.serialization.Serializable
 
 
@@ -15,7 +17,14 @@ import kotlinx.serialization.Serializable
 object HomeRoute
 
 fun NavController.navigateToHome(
-    navOptions: NavOptions,
+    navOptions: NavOptions = navOptions {
+        popUpTo(HomeRoute) {
+            inclusive = false
+            saveState = true
+        }
+        restoreState = true
+        launchSingleTop = true
+    },
 ) = navigate(route = HomeRoute, navOptions)
 
 
@@ -23,18 +32,17 @@ fun NavGraphBuilder.homeScreen(
     navigateToAnnouncement: (Int) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToProfile: () -> Unit,
-    navigateToSearch: () -> Unit
+    navigateToSearch: (query: String, tagsId: ImmutableList<Int>, authorIds: ImmutableList<Int>) -> Unit,
 ) {
     composable<HomeRoute>(
         enterTransition = { scaleIn() },
         exitTransition = { fadeOut() },
         popEnterTransition = { fadeIn() }) { backStackEntry ->
-        HomeScreenRoute(navigateToAnnouncement = {
-            navigateToAnnouncement(it)
-        }, navigateToSettings = {
-            navigateToSettings()
-        }, navigateToProfile = {
-            navigateToProfile()
-        }, navigateToSearch = { navigateToSearch() })
+        HomeScreenRoute(
+            navigateToAnnouncement = navigateToAnnouncement,
+            navigateToSettings = navigateToSettings,
+            navigateToProfile = navigateToProfile,
+            navigateToSearch = navigateToSearch,
+        )
     }
 }

@@ -9,15 +9,26 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import androidx.navigation.navOptions
+import androidx.navigation.toRoute
 import com.kastik.apps.feature.search.SearchScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
-object SearchRoute
+data class SearchRoute(
+    val query: String,
+    val tags: List<Int>,
+    val authors: List<Int>,
+)
 
 fun NavController.navigateToSearch(
-    navOptions: NavOptions,
-) = navigate(route = SearchRoute, navOptions)
+    query: String = "",
+    tags: List<Int> = emptyList(),
+    authors: List<Int> = emptyList(),
+    navOptions: NavOptions = navOptions {
+        launchSingleTop = true
+    },
+) = navigate(route = SearchRoute(query = query, tags = tags, authors = authors), navOptions)
 
 
 fun NavGraphBuilder.searchScreen(
@@ -43,10 +54,11 @@ fun NavGraphBuilder.searchScreen(
         exitTransition = {
             fadeOut()
         }
-    ) {
+    ) { backStackEntry ->
+        backStackEntry.toRoute<SearchRoute>()
         SearchScreen(
             navigateBack = navigateBack,
-            navigateToAnnouncement = navigateToAnnouncement
+            navigateToAnnouncement = navigateToAnnouncement,
         )
     }
 }

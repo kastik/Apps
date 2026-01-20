@@ -2,48 +2,80 @@ package com.kastik.apps.core.domain.usecases
 
 import androidx.paging.PagingData
 import com.kastik.apps.core.domain.repository.AnnouncementRepository
-import com.kastik.apps.core.model.aboard.AnnouncementPreview
-import com.kastik.apps.core.model.aboard.AnnouncementTag
-import com.kastik.apps.core.model.aboard.AnnouncementView
-import com.kastik.apps.core.model.aboard.Author
+import com.kastik.apps.core.domain.repository.UserPreferencesRepository
+import com.kastik.apps.core.model.aboard.Announcement
+import dagger.hilt.android.scopes.ViewModelScoped
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class GetPagedAnnouncementsUseCase(
-    private val repo: AnnouncementRepository
+@Singleton
+class GetPagedAnnouncementsUseCase @Inject constructor(
+    private val announcementRepository: AnnouncementRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) {
-    operator fun invoke(): Flow<PagingData<AnnouncementPreview>> =
-        repo.getPagedAnnouncements()
+    operator fun invoke(): Flow<PagingData<Announcement>> {
+        return userPreferencesRepository.getSortType()
+            .flatMapLatest { sortType ->
+                announcementRepository.getPagedAnnouncements(
+                    sortType,
+                    query = "",
+                    authorIds = emptyList(),
+                    tagIds = emptyList(),
+                )
+            }
+    }
 }
 
-class GetPagedFilteredAnnouncementsUseCase(
-    private val repo: AnnouncementRepository
+@ViewModelScoped
+class GetPagedFilteredAnnouncementsUseCase @Inject constructor(
+    private val announcementRepository: AnnouncementRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) {
     operator fun invoke(
-        query: String?,
-        authorIds: List<Int>?,
-        tagIds: List<Int>?
-    ): Flow<PagingData<AnnouncementPreview>> =
-        repo.getPagedFilteredAnnouncements(query, authorIds, tagIds)
+        query: String,
+        authorIds: List<Int>,
+        tagIds: List<Int>
+    ): Flow<PagingData<Announcement>> =
+        userPreferencesRepository.getSortType()
+            .flatMapLatest { sortType ->
+                announcementRepository.getPagedAnnouncements(sortType, query, authorIds, tagIds)
+            }
 }
 
-class GetAnnouncementWithIdUseCase(
-    private val repo: AnnouncementRepository
+class GetSearchQuickResultsAnnouncementsUseCase @Inject constructor(
+    private val announcementRepository: AnnouncementRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) {
-    operator fun invoke(id: Int): Flow<AnnouncementView> =
-        repo.getAnnouncementWithId(id)
+    operator fun invoke(query: String? = null) =
+        userPreferencesRepository.getSortType()
+            .flatMapLatest { sortType ->
+                if (query.isNullOrBlank()) {
+                    flowOf(persistentListOf())
+                } else {
+                    announcementRepository.getAnnouncementsQuickResults(sortType, query).map {
+                        it.toImmutableList()
+                    }
+                }
+            }
 }
 
-class GetTagsUseCase(
-    private val repo: AnnouncementRepository
+class GetAnnouncementWithIdUseCase @Inject constructor(
+    private val announcementRepository: AnnouncementRepository
 ) {
-    suspend operator fun invoke(): Flow<List<AnnouncementTag>> =
-        repo.getTags()
+    operator fun invoke(id: Int): Flow<Announcement?> =
+        announcementRepository.getAnnouncementWithId(id)
 }
 
 
-class GetAuthorsUseCase(
-    private val repo: AnnouncementRepository
+class RefreshAnnouncementWithIdUseCase @Inject constructor(
+    private val announcementRepository: AnnouncementRepository
 ) {
-    suspend operator fun invoke(): Flow<List<Author>> =
-        repo.getAuthors()
+    suspend operator fun invoke(id: Int) =
+        announcementRepository.refreshAnnouncementWithId(id)
 }

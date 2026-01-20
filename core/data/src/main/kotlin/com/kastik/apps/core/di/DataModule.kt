@@ -1,86 +1,56 @@
 package com.kastik.apps.core.di
 
-import android.content.Context
-import androidx.room.Room
-import com.kastik.apps.core.data.repository.AnnouncementRepoImpl
+import com.kastik.apps.core.data.repository.AnnouncementRepositoryImpl
 import com.kastik.apps.core.data.repository.AuthenticationRepositoryImpl
-import com.kastik.apps.core.data.repository.UserInfoRepositoryImpl
-import com.kastik.apps.core.data.repository.UserPreferencesRepoImpl
-import com.kastik.apps.core.database.db.AppDatabase
-import com.kastik.apps.core.datastore.AuthenticationLocalDataSource
-import com.kastik.apps.core.datastore.UserPreferencesLocalDataSource
+import com.kastik.apps.core.data.repository.AuthorRepositoryImpl
+import com.kastik.apps.core.data.repository.ProfileRepositoryImpl
+import com.kastik.apps.core.data.repository.TagsRepositoryImpl
+import com.kastik.apps.core.data.repository.UserPreferencesRepositoryImpl
 import com.kastik.apps.core.domain.repository.AnnouncementRepository
 import com.kastik.apps.core.domain.repository.AuthenticationRepository
-import com.kastik.apps.core.domain.repository.UserInfoRepository
+import com.kastik.apps.core.domain.repository.AuthorRepository
+import com.kastik.apps.core.domain.repository.ProfileRepository
+import com.kastik.apps.core.domain.repository.TagsRepository
 import com.kastik.apps.core.domain.repository.UserPreferencesRepository
-import com.kastik.apps.core.network.api.AboardApiClient
-import com.kastik.apps.core.network.datasource.AnnouncementRemoteDataSource
-import com.kastik.apps.core.network.datasource.AnnouncementRemoteDataSourceImpl
-import com.kastik.apps.core.network.datasource.AuthenticationRemoteDataSource
-import com.kastik.apps.core.network.datasource.UserInfoRemoteDataSource
-import com.kastik.apps.core.network.datasource.UserInfoRemoteDataSourceImpl
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DataModule {
+abstract class DataModule {
 
-    @Provides
-    @Singleton
-    fun provideAppDatabase(
-        @ApplicationContext context: Context
-    ): AppDatabase = Room.databaseBuilder(
-        context, AppDatabase::class.java, "announcement_cache.db"
-    ).fallbackToDestructiveMigration(true)
-        .build()
+    @Binds
+    internal abstract fun bindAnnouncementRepository(
+        announcementRepositoryImpl: AnnouncementRepositoryImpl
+    ): AnnouncementRepository
 
-    @Provides
-    fun provideAnnouncementDao(db: AppDatabase) = db.announcementDao()
+    @Binds
+    internal abstract fun bindTagsRepository(
+        tagsRepositoryImpl: TagsRepositoryImpl
+    ): TagsRepository
 
-
-    @Provides
-    @Singleton
-    fun provideAnnouncementRemoteDataSource(
-        api: AboardApiClient
-    ): AnnouncementRemoteDataSource = AnnouncementRemoteDataSourceImpl(api)
-
-    @Provides
-    @Singleton
-    fun provideAnnouncementRepository(
-        remoteDataSource: AnnouncementRemoteDataSource,
-        database: AppDatabase,
-    ): AnnouncementRepository = AnnouncementRepoImpl(remoteDataSource, database)
+    @Binds
+    internal abstract fun bindAuthorRepository(
+        authorRepositoryImpl: AuthorRepositoryImpl
+    ): AuthorRepository
 
 
-    @Provides
-    @Singleton
-    fun provideAuthenticationRepository(
-        local: AuthenticationLocalDataSource, remote: AuthenticationRemoteDataSource
-    ): AuthenticationRepository = AuthenticationRepositoryImpl(local, remote)
+    @Binds
+    internal abstract fun bindAuthenticationRepository(
+        authenticationRepositoryImpl: AuthenticationRepositoryImpl
+    ): AuthenticationRepository
 
-    @Provides
-    @Singleton
-    fun provideUserPreferencesRepository(
-        datastore: UserPreferencesLocalDataSource
-    ): UserPreferencesRepository = UserPreferencesRepoImpl(datastore)
+    @Binds
+    internal abstract fun bindUserPreferencesRepository(
+        userPreferencesRepositoryImpl: UserPreferencesRepositoryImpl
+    ): UserPreferencesRepository
 
-    @Provides
-    @Singleton
-    fun provideUserInfoRepository(
-        datasource: UserInfoRemoteDataSource
-    ): UserInfoRepository = UserInfoRepositoryImpl(datasource)
-
-    @Provides
-    @Singleton
-    fun provideUserInfoRemoteDataSource(
-        api: AboardApiClient
-    ): UserInfoRemoteDataSource = UserInfoRemoteDataSourceImpl(api)
-
+    @Binds
+    internal abstract fun bindUserInfoRepository(
+        profileRepositoryImpl: ProfileRepositoryImpl
+    ): ProfileRepository
 
 }
 

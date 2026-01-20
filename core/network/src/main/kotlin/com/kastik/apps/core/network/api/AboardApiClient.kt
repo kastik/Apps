@@ -1,16 +1,17 @@
 package com.kastik.apps.core.network.api
 
 
+import com.kastik.apps.core.model.aboard.SortType
 import com.kastik.apps.core.network.model.aboard.AboardAuthTokenDto
 import com.kastik.apps.core.network.model.aboard.AnnouncementDto
 import com.kastik.apps.core.network.model.aboard.AnnouncementPageResponse
 import com.kastik.apps.core.network.model.aboard.AuthorDto
 import com.kastik.apps.core.network.model.aboard.SingleAnnouncementResponse
-import com.kastik.apps.core.network.model.aboard.TagsResponse
+import com.kastik.apps.core.network.model.aboard.SubscribableTagsDto
+import com.kastik.apps.core.network.model.aboard.SubscribedTagDto
+import com.kastik.apps.core.network.model.aboard.TagsResponseDto
 import com.kastik.apps.core.network.model.aboard.UpdateUserSubscriptionsDto
 import com.kastik.apps.core.network.model.aboard.UserProfileDto
-import com.kastik.apps.core.network.model.aboard.UserSubscribableTagsDto
-import com.kastik.apps.core.network.model.aboard.UserSubscribedTagDto
 import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -24,7 +25,7 @@ import retrofit2.http.Streaming
 interface AboardApiClient {
     @GET("announcements")
     suspend fun getAnnouncements(
-        @Query("sortId") sortId: Int = 1,
+        @Query("sortId") sortType: SortType,
         @Query("page") page: Int,
         @Query("perPage") perPage: Int,
         @Query("users[]") authorId: List<Int>? = null,
@@ -62,7 +63,7 @@ interface AboardApiClient {
 
     @GET("tags")
     suspend fun getTags(
-    ): TagsResponse
+    ): TagsResponseDto
 
     @GET("authors")
     suspend fun getAuthors(
@@ -78,10 +79,10 @@ interface AboardApiClient {
     suspend fun getUserInfo(): UserProfileDto
 
     @GET("auth/subscriptions")
-    suspend fun getUserSubscriptions(): List<UserSubscribedTagDto>
+    suspend fun getUserSubscriptions(): List<SubscribedTagDto>
 
     @GET("subscribetags")
-    suspend fun getUserSubscribableTags(): List<UserSubscribableTagsDto>
+    suspend fun getUserSubscribableTags(): List<SubscribableTagsDto>
 
     @POST("auth/subscribe")
     suspend fun subscribeToTags(

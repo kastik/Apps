@@ -1,18 +1,11 @@
 package com.kastik.apps.feature.search
 
-import androidx.paging.PagingData
-import com.kastik.apps.core.model.aboard.AnnouncementPreview
-import com.kastik.apps.core.model.aboard.AnnouncementTag
-import com.kastik.apps.core.model.aboard.Author
-import kotlinx.coroutines.flow.Flow
+import com.kastik.apps.core.model.search.FilterOptions
+import com.kastik.apps.core.model.search.QuickResults
+import com.kastik.apps.core.ui.topbar.ActiveFilters
 
 data class UiState(
-    val searchResults: Flow<PagingData<AnnouncementPreview>>? = null,
-    val query: String = "",
-    val tags: List<AnnouncementTag>? = null,
-    val selectedTagIds: List<Int> = emptyList(),
-    val authors: List<Author>? = null,
-    val selectedAuthorIds: List<Int> = emptyList(),
-    val showTagSheet: Boolean = false,
-    val showAuthorSheet: Boolean = false,
+    val activeFilters: ActiveFilters = ActiveFilters(),
+    val availableFilters: FilterOptions = FilterOptions(),
+    val quickResults: QuickResults = QuickResults(),
 )

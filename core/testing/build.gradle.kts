@@ -1,20 +1,25 @@
+import com.android.build.api.dsl.LibraryExtension
+
 plugins {
     alias(libs.plugins.kastik.library)
-    alias(libs.plugins.kastik.library.testing)
     alias(libs.plugins.kastik.hilt)
 }
 
-android {
+configure<LibraryExtension> {
     namespace = "com.kastik.apps.core.testing"
 }
 
 dependencies {
+    implementation(project(":core:data"))
     implementation(project(":core:database"))
     implementation(project(":core:network"))
     implementation(project(":core:datastore"))
+    implementation(project(":core:domain"))
     implementation(project(":core:model"))
 
+
     ksp(libs.room.compiler)
+    implementation(libs.androidx.test.core.ktx)
     implementation(libs.io.mockk)
     implementation(libs.room.ktx)
     implementation(libs.room.paging)
@@ -22,4 +27,6 @@ dependencies {
     implementation(libs.paging.common)
     implementation(libs.paging.common)
     implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.robolectric)
+    implementation(libs.androidx.runner)
 }

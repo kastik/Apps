@@ -1,94 +1,115 @@
 package com.kastik.apps.feature.home
 
-import android.content.Intent
-import android.util.Log
+import android.Manifest
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.LoadingIndicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.kastik.apps.core.designsystem.component.FloatingToolBar
-import com.kastik.apps.core.designsystem.component.PagingRefreshError
-import com.kastik.apps.core.designsystem.component.PagingRefreshLoading
-import com.kastik.apps.core.designsystem.component.PagingRefreshSuccess
-import com.kastik.apps.core.designsystem.component.SearchBarCollapsed
-import com.kastik.apps.core.designsystem.component.SignInNotice
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
+import com.kastik.apps.core.designsystem.component.IEEDialog
+import com.kastik.apps.core.designsystem.component.IEEFloatingToolBar
 import com.kastik.apps.core.designsystem.theme.AppsAboardTheme
-import com.kastik.apps.core.designsystem.utils.TrackScreenViewEvent
-import com.kastik.apps.core.designsystem.utils.isScrollingUp
-import com.kastik.apps.core.model.aboard.AnnouncementAttachment
-import com.kastik.apps.core.model.aboard.AnnouncementPreview
-import com.kastik.apps.core.model.aboard.AnnouncementTag
+import com.kastik.apps.core.model.aboard.Announcement
+import com.kastik.apps.core.model.aboard.Attachment
+import com.kastik.apps.core.model.aboard.Tag
+import com.kastik.apps.core.ui.extensions.LocalAnalytics
+import com.kastik.apps.core.ui.extensions.TrackScreenViewEvent
+import com.kastik.apps.core.ui.extensions.isScrollingUp
+import com.kastik.apps.core.ui.extensions.launchSignIn
+import com.kastik.apps.core.ui.extensions.shareAnnouncement
+import com.kastik.apps.core.ui.pagging.AnnouncementFeed
+import com.kastik.apps.core.ui.placeholder.LoadingContent
+import com.kastik.apps.core.ui.placeholder.StatusContent
+import com.kastik.apps.core.ui.sheet.GenericFilterSheet
+import com.kastik.apps.core.ui.topbar.SearchBar
+import com.kastik.apps.core.ui.topbar.SearchBarFilters
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
-@OptIn(
-    ExperimentalAnimationApi::class,
-    ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class,
-)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeScreenRoute(
-    viewModel: HomeScreenViewModel = hiltViewModel(),
     navigateToAnnouncement: (Int) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToProfile: () -> Unit,
-    navigateToSearch: () -> Unit,
+    navigateToSearch: (query: String, tagsId: ImmutableList<Int>, authorIds: ImmutableList<Int>) -> Unit,
+    viewModel: HomeScreenViewModel = hiltViewModel(),
 ) {
-    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val lazyAnnouncementPagingItems = viewModel.announcements.collectAsLazyPagingItems()
+    val homeFeedAnnouncements = viewModel.homeFeedAnnouncements.collectAsLazyPagingItems()
+    val textFieldState = viewModel.searchBarTextFieldState
 
     TrackScreenViewEvent("home_screen")
 
-    LaunchedEffect(Unit) {
-        viewModel.events.collect { event ->
-            when (event) {
-                is HomeEvent.OpenUrl -> {
-                    val intent = Intent(
-                        Intent.ACTION_VIEW, event.url.toUri()
-                    )
-                    context.startActivity(intent)
-                }
-            }
-        }
-    }
-
     HomeScreenContent(
         uiState = uiState,
-        announcements = lazyAnnouncementPagingItems,
-        navigateToAnnouncement = navigateToAnnouncement,
-        navigateToSettings = navigateToSettings,
+        searchBarTextFieldState = textFieldState,
+        homeFeedAnnouncements = homeFeedAnnouncements,
+        navigateToSearch = navigateToSearch,
         navigateToProfile = navigateToProfile,
+        navigateToSettings = navigateToSettings,
+        navigateToAnnouncement = navigateToAnnouncement,
         onSignInNoticeDismissed = viewModel::onSignInNoticeDismiss,
-        onSignInClicked = viewModel::onSignInClick,
-        navigateToSearch = navigateToSearch
     )
 }
 
@@ -96,110 +117,310 @@ internal fun HomeScreenRoute(
 @Composable
 private fun HomeScreenContent(
     uiState: UiState,
-    announcements: LazyPagingItems<AnnouncementPreview>,
-    navigateToSearch: () -> Unit,
+    searchBarTextFieldState: TextFieldState,
+    homeFeedAnnouncements: LazyPagingItems<Announcement>,
+    navigateToAnnouncement: (Int) -> Unit,
+    navigateToSearch: (query: String, tagIds: ImmutableList<Int>, authorIds: ImmutableList<Int>) -> Unit,
     navigateToProfile: () -> Unit,
     navigateToSettings: () -> Unit,
-    navigateToAnnouncement: (Int) -> Unit,
-    onSignInClicked: () -> Unit,
     onSignInNoticeDismissed: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val vibrator = LocalHapticFeedback.current
+    val analytics = LocalAnalytics.current
     val scope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
+    val pullToRefreshState = rememberPullToRefreshState()
     val searchScroll = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+    val tagSheetState = rememberModalBottomSheetState()
+    val showTagSheet = rememberSaveable { mutableStateOf(false) }
+    val authorSheetState = rememberModalBottomSheetState()
+    val showAuthorSheet = rememberSaveable { mutableStateOf(false) }
+    val searchBarState = rememberSearchBarState()
 
-    LaunchedEffect(uiState.isSignedIn) {
-        Log.d("MyLog", "hasEvaluatedAuth: ${uiState.hasEvaluatedAuth}")
-        if (uiState.hasEvaluatedAuth) {
-            Log.d("MyLog", "hasEvaluatedAuth: refreshing")
-            announcements.refresh()
+    AnimatedVisibility(uiState.showSignInNotice) {
+        IEEDialog(
+            icon = Icons.AutoMirrored.Default.Login,
+            title = "Sign in",
+            text = "Sign in to unlock all announcements. You are currently browsing with limited access.",
+            confirmText = "Sign-in",
+            onConfirm = { context.launchSignIn() },
+            dismissText = "Dismiss",
+            onDismiss = onSignInNoticeDismissed
+        )
+    }
+
+    if (uiState.isSignedIn) {
+        NotificationRationale()
+    }
+
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { pullToRefreshState.distanceFraction > 1f }.distinctUntilChanged()
+            .filter { it }.collect {
+                vibrator.performHapticFeedback(HapticFeedbackType.GestureEnd)
+            }
+    }
+
+    LaunchedEffect(searchBarState.isAnimating) {
+        if (searchBarState.targetValue == SearchBarValue.Collapsed) {
+            searchBarTextFieldState.clearText()
         }
     }
 
-    AnimatedVisibility(uiState.showSignInNotice) {
-        SignInNotice(
-            onDismiss = onSignInNoticeDismissed, onSignIn = onSignInClicked
+    Scaffold(contentWindowInsets = WindowInsets.safeDrawing, floatingActionButton = {
+        IEEFloatingToolBar(
+            expanded = (lazyListState.isScrollingUp()),
+            expandedAction = {
+                analytics.logEvent("scroll_up_clicked")
+                scope.launch { lazyListState.animateScrollToItem(0) }
+            },
+            collapsedAction = {
+                analytics.logEvent("search_clicked")
+                navigateToSearch(
+                    "", persistentListOf(), persistentListOf()
+                )
+            },
+            expandedIcon = { Icon(Icons.Filled.ArrowUpward, null) },
+            collapsedIcon = { Icon(Icons.Filled.Search, null) },
         )
-    }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        SearchBarCollapsed(
+
+    }, topBar = {
+        SearchBar(
             scrollBehavior = searchScroll,
-            navigateToSettings = navigateToSettings,
-            navigateToProfile = navigateToProfile,
-            isSignedIn = uiState.isSignedIn,
-            onSignInClick = onSignInClicked,
-            navigateToSearch = navigateToSearch
+            quickResults = uiState.quickResults,
+            searchBarState = searchBarState,
+            textFieldState = searchBarTextFieldState,
+            onAnnouncementQuickResultClick = navigateToAnnouncement,
+            onSearch = { query ->
+                searchBarTextFieldState.clearText()
+                navigateToSearch(query, persistentListOf(), persistentListOf())
+            },
+            onTagQuickResultClick = { tag ->
+                searchBarTextFieldState.clearText()
+                navigateToSearch("", persistentListOf(tag), persistentListOf())
+            },
+            onAuthorQuickResultClick = { author ->
+                searchBarTextFieldState.clearText()
+                navigateToSearch("", persistentListOf(), persistentListOf(author))
+            },
+            expandedSecondaryActions = {
+                SearchBarFilters(
+                    selectedTagsCount = 0,
+                    selectedAuthorsCount = 0,
+                    openTagSheet = { showTagSheet.value = true },
+                    openAuthorSheet = { showAuthorSheet.value = true })
+            },
+            navigationIcon = {
+                IconButton(
+                    onClick = {
+                        if (uiState.isSignedIn) {
+                            analytics.logEvent("profile_clicked")
+                            navigateToProfile()
+                        } else {
+                            analytics.logEvent("sign_in_clicked")
+                            context.launchSignIn()
+                        }
+                    }) {
+                    Icon(
+                        Icons.Default.AccountCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            actions = {
+                IconButton(onClick = {
+                    analytics.logEvent("settings_clicked")
+                    navigateToSettings()
+                }) {
+                    Icon(
+                        Icons.Default.Settings,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
         )
-        Box {
-            when (announcements.loadState.refresh) {
-                is LoadState.Loading -> {
-                    PagingRefreshLoading()
+    }) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = paddingValues.calculateTopPadding())
+        ) {
+            val refreshState = homeFeedAnnouncements.loadState.refresh
+            val _ = homeFeedAnnouncements.loadState.append
+            val isEmpty by remember { derivedStateOf { homeFeedAnnouncements.itemCount == 0 } }
+
+
+            PullToRefreshBox(
+                isRefreshing = refreshState is LoadState.Loading,
+                state = pullToRefreshState,
+                onRefresh = { homeFeedAnnouncements.refresh() },
+                indicator = {
+                    LoadingIndicator(
+                        modifier = Modifier.align(Alignment.TopCenter),
+                        state = pullToRefreshState,
+                        isRefreshing = refreshState is LoadState.Loading,
+                    )
+                }) {
+                AnnouncementFeed(
+                    announcements = homeFeedAnnouncements,
+                    lazyListState = lazyListState,
+                    scrollBehavior = searchScroll,
+                    onAnnouncementClick = { announcementId ->
+                        analytics.logEvent(
+                            "announcement_clicked",
+                            mapOf("announcement_id" to announcementId)
+                        )
+                        navigateToAnnouncement(announcementId)
+                    },
+                    onAnnouncementLongClick = { announcementId ->
+                        analytics.logEvent(
+                            "announcement_shared",
+                            mapOf("announcement_id" to announcementId)
+                        )
+                        context.shareAnnouncement(announcementId)
+                    },
+                    contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding()),
+                )
+
+                if (refreshState is LoadState.Error && isEmpty) {
+                    StatusContent(
+                        message = "Failed to load.",
+                        action = { homeFeedAnnouncements.retry() },
+                        actionText = "Retry",
+                    )
+                    Text("Something went wrong")
                 }
 
-                is LoadState.Error -> {
-                    PagingRefreshError { announcements.retry() }
-                }
-
-                is LoadState.NotLoading -> {
-                    PagingRefreshSuccess(
-                        navigateToAnnouncement = navigateToAnnouncement,
-                        lazyAnnouncements = announcements,
-                        lazyListState = lazyListState,
-                        searchScroll = searchScroll
+                if (refreshState is LoadState.Loading && isEmpty) {
+                    LoadingContent(
+                        modifier = Modifier.fillMaxSize(),
+                        message = "Fetching Announcements...",
                     )
                 }
             }
-            FloatingToolBar(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                expanded = (lazyListState.isScrollingUp()),
-                expandedAction = { scope.launch { lazyListState.animateScrollToItem(0) } },
-                collapsedAction = { navigateToSearch() },
-                expandedIcon = { Icon(Icons.Filled.ArrowUpward, null) },
-                collapsedIcon = { Icon(Icons.Filled.Search, null) },
-            )
+        }
 
+    }
+
+    if (showTagSheet.value) {
+        GenericFilterSheet(
+            sheetState = tagSheetState,
+            items = uiState.availableFilters.tags,
+            selectedIds = persistentListOf(),
+            idProvider = { it.id },
+            labelProvider = { it.title },
+            titlePlaceholder = "Search Tags...",
+            applyText = "Apply Tags",
+            onApply = { newTagIds ->
+                scope.launch {
+                    analytics.logEvent("search_tags_updated", mapOf("tags" to newTagIds.toList()))
+                    showTagSheet.value = false
+                    searchBarState.animateToCollapsed()
+                    navigateToSearch("", newTagIds, persistentListOf())
+                }
+            },
+            onDismiss = {
+                showTagSheet.value = false
+            },
+
+        )
+    }
+    if (showAuthorSheet.value) {
+        GenericFilterSheet(
+            sheetState = authorSheetState,
+            items = uiState.availableFilters.authors,
+            selectedIds = persistentListOf(),
+            idProvider = { it.id },
+            labelProvider = { "${it.name} [${it.announcementCount}]" },
+            groupProvider = { it.name.first().uppercaseChar() }, // Turns on grouping
+            titlePlaceholder = "Search Authors...",
+            applyText = "Apply Authors",
+            onApply = { newAuthorIds ->
+                scope.launch {
+                    analytics.logEvent(
+                        "search_authors_updated",
+                        mapOf("authors" to newAuthorIds.toList())
+                    )
+                    showAuthorSheet.value = false
+                    searchBarState.animateToCollapsed()
+                    navigateToSearch("", persistentListOf(), newAuthorIds)
+                }
+            },
+            onDismiss = {
+                showAuthorSheet.value = false
+            },
+        )
+    }
+
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+private fun NotificationRationale() {
+    var showRationale by rememberSaveable { mutableStateOf(true) }
+    val notificationPermissionState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
+    } else {
+        null
+    }
+
+    notificationPermissionState?.let {
+        if (!notificationPermissionState.status.isGranted && showRationale) {
+            if (notificationPermissionState.status.shouldShowRationale) {
+                IEEDialog(
+                    icon = Icons.Default.NotificationsActive,
+                    title = "Stay updated",
+                    text = "Turn on notifications to never miss an important announcement.",
+                    confirmText = "Allow",
+                    onConfirm = { notificationPermissionState.launchPermissionRequest() },
+                    dismissText = "Dismiss",
+                    onDismiss = { showRationale = false })
+            } else {
+                LaunchedEffect(Unit) {
+                    delay(2000)
+                    notificationPermissionState.launchPermissionRequest()
+                }
+            }
         }
     }
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showSystemUi = false, showBackground = true)
 @Composable
 fun PreviewHomeScreenContent() {
-    val pagedAnnouncements = flowOf(PagingData.from(FakeAnnouncements))
-        .collectAsLazyPagingItems()
+    val pagedAnnouncements = flowOf(PagingData.from(FakeAnnouncements)).collectAsLazyPagingItems()
     AppsAboardTheme {
         Surface {
             HomeScreenContent(
                 uiState = UiState(),
-                announcements = pagedAnnouncements,
+                homeFeedAnnouncements = pagedAnnouncements,
                 navigateToAnnouncement = {},
                 navigateToSettings = {},
                 navigateToProfile = {},
                 onSignInNoticeDismissed = {},
-                onSignInClicked = {},
-                navigateToSearch = {},
+                navigateToSearch = { _, _, _ -> },
+                searchBarTextFieldState = TextFieldState(),
             )
         }
     }
 }
 
-val FakeAnnouncementTags = listOf(
-    AnnouncementTag(
+val FakeTags = listOf(
+    Tag(
         id = 1, title = "Tag1",
-    ), AnnouncementTag(
+    ), Tag(
         id = 2, title = "Tag2",
     )
 )
 
 val FakeAttachments = listOf(
-    AnnouncementAttachment(
+    Attachment(
         id = 1,
         filename = "image.jpg",
         fileSize = 1000,
@@ -207,14 +428,16 @@ val FakeAttachments = listOf(
     )
 )
 
-val FakeAnnouncements = listOf<AnnouncementPreview>(
-    AnnouncementPreview(
+val FakeAnnouncements = listOf(
+    Announcement(
         id = 1,
         title = "Announcement Title",
         preview = "The quick brow fox jumps over the lazy dog",
         author = "Kostas",
-        tags = FakeAnnouncementTags,
+        tags = FakeTags,
         attachments = FakeAttachments,
-        date = "10-12-2025 11:45"
+        date = "10-12-2025 11:45",
+        pinned = false,
+        body = "",
     )
 )

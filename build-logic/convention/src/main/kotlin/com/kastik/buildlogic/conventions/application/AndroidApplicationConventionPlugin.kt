@@ -2,21 +2,21 @@ package com.kastik.buildlogic.conventions.application
 
 import com.android.build.api.dsl.ApplicationExtension
 import com.kastik.buildlogic.conventions.config.AppConfig
+import com.kastik.buildlogic.conventions.extensions.configureAndroidCompose
+import com.kastik.buildlogic.conventions.extensions.configureKotlinJvm
 import com.kastik.buildlogic.conventions.extensions.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.withType
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+import org.gradle.kotlin.dsl.getByType
 
 class AndroidApplicationConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             with(pluginManager) {
                 apply("com.android.application")
-                apply("org.jetbrains.kotlin.android")
             }
 
             extensions.configure<ApplicationExtension> {
@@ -37,22 +37,17 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 targetCompatibility = AppConfig.targetCompatibility
             }
 
-            dependencies {
-                add("implementation", libs.findLibrary("androidx-core-ktx").get())
-            }
+            val extension = extensions.getByType<ApplicationExtension>()
+            configureAndroidCompose(extension)
 
-            tasks.withType<KotlinJvmCompile>().configureEach {
-                compilerOptions {
-                    jvmTarget.set(AppConfig.jvmTarget)
-                    freeCompilerArgs.addAll(
-                        listOf(
-                            "-opt-in=kotlin.RequiresOptIn",
-                            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                            "-opt-in=kotlinx.coroutines.FlowPreview"
-                        )
-                    )
-                }
+            dependencies {
+                add("implementation", libs.findLibrary("androidx.activity").get())
+                add("implementation", libs.findLibrary("androidx-core-ktx").get())
+                add("implementation", libs.findLibrary("androidx-activity-compose").get())
+                add("implementation", libs.findLibrary("kotlinx-collections-immutable").get())
+                add("implementation", libs.findLibrary("androidx-hilt-navigation-compose").get())
             }
+            configureKotlinJvm()
         }
     }
 }

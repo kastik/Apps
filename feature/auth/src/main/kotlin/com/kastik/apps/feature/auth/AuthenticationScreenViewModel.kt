@@ -2,38 +2,63 @@ package com.kastik.apps.feature.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kastik.apps.core.analytics.Analytics
 import com.kastik.apps.core.domain.usecases.ExchangeCodeForAboardTokenUseCase
+import com.kastik.apps.core.domain.usecases.RefreshSubscriptionsUseCase
+import com.kastik.apps.core.domain.usecases.RefreshUserProfileUseCase
+import com.kastik.apps.core.domain.usecases.SubscribeToTagsUseCase
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import javax.inject.Inject
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 
-@HiltViewModel
-class AuthenticationScreenViewModel @Inject constructor(
-    private val analytics: Analytics,
-    private val exchangeCodeForToken: ExchangeCodeForAboardTokenUseCase
+@HiltViewModel(assistedFactory = AuthenticationScreenViewModel.Factory::class)
+class AuthenticationScreenViewModel @AssistedInject constructor(
+    @Assisted("code") code: String?,
+    @Assisted("state") state: String?,
+    @Assisted("error") error: String?,
+    @Assisted("errorDesc") errorDesc: String?,
+    private val exchangeCodeForToken: ExchangeCodeForAboardTokenUseCase,
+    private val refreshUserProfileUseCase: RefreshUserProfileUseCase,
+    private val refreshSubscriptionsUseCase: RefreshSubscriptionsUseCase,
+    private val subscribeToTagsUseCase: SubscribeToTagsUseCase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
-    val uiState: StateFlow<UiState> = _uiState
-
-    fun onAuthRedirect(code: String?, error: String?, errorDesc: String?) {
+    val uiState: StateFlow<UiState> = flow {
         if (!error.isNullOrBlank()) {
-            _uiState.value = UiState.Error(error)
-            return
+            emit(UiState.Error(error))
+            return@flow
         }
+
         if (code.isNullOrBlank()) {
-            _uiState.value = UiState.Error("Something went wrong")
-            return
+            emit(UiState.Error("Something went wrong"))
+            return@flow
         }
 
-        viewModelScope.launch {
-            exchangeCodeForToken(code)
-            _uiState.value = UiState.Success
+        exchangeCodeForToken(code)
+        refreshUserProfileUseCase()
+        refreshSubscriptionsUseCase()
+        emit(UiState.Success)
 
-        }
+    }.catch {
+        emit(UiState.Error("Something went wrong"))
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = UiState.Loading
+    )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            @Assisted("code") code: String?,
+            @Assisted("state") state: String?,
+            @Assisted("error") error: String?,
+            @Assisted("errorDesc") errorDesc: String?
+        ): AuthenticationScreenViewModel
     }
-
 }
