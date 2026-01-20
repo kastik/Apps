@@ -1,4 +1,4 @@
-package com.kastik.apps.core.ui
+package com.kastik.apps.core.ui.topbar
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.kastik.apps.core.designsystem.component.IEEFilterChip
 
 @Composable
 fun SupplementaryContent(
@@ -26,14 +27,14 @@ fun SupplementaryContent(
             .padding(horizontal = 6.dp)
             .horizontalScroll(rememberScrollState())
     ) {
-        FilterChip(
+        IEEFilterChip(
             label = "Tags",
             selectedCount = selectedTagsCount,
             onClick = openTagSheet
 
         )
 
-        FilterChip(
+        IEEFilterChip(
             label = "Authors",
             selectedCount = selectedAuthorsCount,
             onClick = openAuthorSheet
