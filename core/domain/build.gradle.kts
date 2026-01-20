@@ -12,4 +12,5 @@ configure<LibraryExtension> {
 dependencies {
     implementation(libs.paging.common)
     implementation(project(":core:model"))
+    implementation(project(":core:common"))
 }

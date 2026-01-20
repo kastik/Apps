@@ -1,5 +1,6 @@
 package com.kastik.apps.core.domain.usecases
 
+import com.kastik.apps.core.common.extensions.removeAccents
 import com.kastik.apps.core.domain.repository.TagsRepository
 import com.kastik.apps.core.model.aboard.SubscribableTag
 import kotlinx.collections.immutable.ImmutableList
@@ -43,7 +44,7 @@ class GetTagsQuickResults @Inject constructor(
     operator fun invoke(query: String) =
         tagsRepository.getAnnouncementTags().map { tags ->
             tags.filter {
-                it.title.contains(query, ignoreCase = true)
+                it.title.removeAccents().contains(query.removeAccents(), ignoreCase = true)
             }.take(5).toImmutableList()
         }
 

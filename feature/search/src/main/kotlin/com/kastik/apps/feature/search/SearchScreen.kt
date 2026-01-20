@@ -32,10 +32,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.kastik.apps.core.common.extensions.shareAnnouncement
 import com.kastik.apps.core.model.aboard.Announcement
 import com.kastik.apps.core.ui.extensions.LocalAnalytics
 import com.kastik.apps.core.ui.extensions.TrackScreenViewEvent
+import com.kastik.apps.core.ui.extensions.shareAnnouncement
 import com.kastik.apps.core.ui.pagging.AnnouncementFeed
 import com.kastik.apps.core.ui.placeholder.LoadingContent
 import com.kastik.apps.core.ui.placeholder.StatusContent
@@ -198,6 +198,7 @@ private fun SearchScreenContent(
                 idProvider = { it.id },
                 labelProvider = { it.title },
                 titlePlaceholder = "Search Tags...",
+                applyText = "Apply Tags",
                 onApply = { newTagIds ->
                     scope.launch {
                         analytics.logEvent(
@@ -227,6 +228,7 @@ private fun SearchScreenContent(
                 labelProvider = { "${it.name} [${it.announcementCount}]" },
                 groupProvider = { it.name.first().uppercaseChar() },
                 titlePlaceholder = "Search Authors...",
+                applyText = "Apply Authors",
                 onApply = { newAuthorIds ->
                     scope.launch {
                         analytics.logEvent(

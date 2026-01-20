@@ -1,6 +1,7 @@
 package com.kastik.apps.feature.search
 
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.delete
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -93,6 +94,10 @@ class SearchScreenViewModel @Inject constructor(
         tagsId: ImmutableList<Int>,
         authorIds: ImmutableList<Int>
     ) {
+        searchBarTextFieldState.edit {
+            delete(0, length)
+            append(query)
+        }
         _activeFeedFilters.update { filters ->
             filters.copy(
                 committedQuery = query,

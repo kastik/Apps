@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -59,8 +60,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
-import com.kastik.apps.core.common.extensions.launchSignIn
-import com.kastik.apps.core.common.extensions.shareAnnouncement
 import com.kastik.apps.core.designsystem.component.IEEDialog
 import com.kastik.apps.core.designsystem.component.IEEFloatingToolBar
 import com.kastik.apps.core.designsystem.theme.AppsAboardTheme
@@ -70,6 +69,8 @@ import com.kastik.apps.core.model.aboard.Tag
 import com.kastik.apps.core.ui.extensions.LocalAnalytics
 import com.kastik.apps.core.ui.extensions.TrackScreenViewEvent
 import com.kastik.apps.core.ui.extensions.isScrollingUp
+import com.kastik.apps.core.ui.extensions.launchSignIn
+import com.kastik.apps.core.ui.extensions.shareAnnouncement
 import com.kastik.apps.core.ui.pagging.AnnouncementFeed
 import com.kastik.apps.core.ui.placeholder.LoadingContent
 import com.kastik.apps.core.ui.placeholder.StatusContent
@@ -159,6 +160,12 @@ private fun HomeScreenContent(
             .filter { it }.collect {
                 vibrator.performHapticFeedback(HapticFeedbackType.GestureEnd)
             }
+    }
+
+    LaunchedEffect(searchBarState.isAnimating) {
+        if (searchBarState.targetValue == SearchBarValue.Collapsed) {
+            searchBarTextFieldState.clearText()
+        }
     }
 
     Scaffold(contentWindowInsets = WindowInsets.safeDrawing, floatingActionButton = {
@@ -307,6 +314,7 @@ private fun HomeScreenContent(
             idProvider = { it.id },
             labelProvider = { it.title },
             titlePlaceholder = "Search Tags...",
+            applyText = "Apply Tags",
             onApply = { newTagIds ->
                 scope.launch {
                     analytics.logEvent("search_tags_updated", mapOf("tags" to newTagIds.toList()))
@@ -330,6 +338,7 @@ private fun HomeScreenContent(
             labelProvider = { "${it.name} [${it.announcementCount}]" },
             groupProvider = { it.name.first().uppercaseChar() }, // Turns on grouping
             titlePlaceholder = "Search Authors...",
+            applyText = "Apply Authors",
             onApply = { newAuthorIds ->
                 scope.launch {
                     analytics.logEvent(

@@ -25,10 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.kastik.apps.core.common.extensions.removeAccents
 import com.kastik.apps.core.ui.extensions.LocalAnalytics
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import java.text.Normalizer
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +41,8 @@ fun <T> GenericFilterSheet(
     idProvider: (T) -> Int,
     labelProvider: (T) -> String,
     groupProvider: ((T) -> Char)? = null,
-    titlePlaceholder: String = "Search..."
+    titlePlaceholder: String = "Search...",
+    applyText: String = "Apply"
 ) {
     val analytics = LocalAnalytics.current
     var query by remember { mutableStateOf("") }
@@ -121,7 +122,7 @@ fun <T> GenericFilterSheet(
                 .fillMaxWidth()
                 .padding(16.dp),
         ) {
-            Text("Apply Authors")
+            Text(applyText)
         }
     }
 }
@@ -165,7 +166,3 @@ private fun <T> groupByInitial(
         .groupBy { titleProvider(it).first().uppercaseChar() }
 }
 
-fun String.removeAccents(): String {
-    return Normalizer.normalize(this, Normalizer.Form.NFD)
-        .replace(Regex("\\p{M}"), "")
-}

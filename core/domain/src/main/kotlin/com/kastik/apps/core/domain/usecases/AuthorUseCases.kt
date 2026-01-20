@@ -1,5 +1,6 @@
 package com.kastik.apps.core.domain.usecases
 
+import com.kastik.apps.core.common.extensions.removeAccents
 import com.kastik.apps.core.domain.repository.AuthorRepository
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
@@ -25,7 +26,7 @@ class GetAuthorQuickResultsUseCase @Inject constructor(
     operator fun invoke(query: String) =
         authorRepository.getAuthors().map { authors ->
             authors.filter {
-                it.name.contains(query, ignoreCase = true)
+                it.name.removeAccents().contains(query.removeAccents(), ignoreCase = true)
             }.take(5).toImmutableList()
 
         }
