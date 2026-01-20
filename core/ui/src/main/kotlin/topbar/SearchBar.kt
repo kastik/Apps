@@ -8,54 +8,51 @@ import androidx.compose.material3.SearchBarState
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
-import com.kastik.apps.core.model.aboard.Announcement
-import com.kastik.apps.core.model.aboard.Author
-import com.kastik.apps.core.model.aboard.Tag
+import com.kastik.apps.core.model.search.QuickResults
 import kotlinx.coroutines.launch
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(
-    searchBarState: SearchBarState,
+    quickResults: QuickResults,
+    onTagQuickResultClick: (tagId: Int) -> Unit,
+    onAuthorQuickResultClick: (authorId: Int) -> Unit,
+    onAnnouncementQuickResultClick: (announcementId: Int) -> Unit,
+    onSearch: (query: String) -> Unit,
     textFieldState: TextFieldState,
+    searchBarState: SearchBarState,
     scrollBehavior: SearchBarScrollBehavior,
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
-    actionButton: @Composable RowScope.() -> Unit = {},
-    expandedSupplementaryContent: @Composable () -> Unit = {},
-    collapsedSupplementaryContent: @Composable () -> Unit = {},
-    navigateToAnnouncement: (Int) -> Unit,
-    onSearch: (query: String, tagsId: List<Int>, authorIds: List<Int>) -> Unit,
-    tagsQuickResults: List<Tag>,
-    authorsQuickResults: List<Author>,
-    announcementsQuickResults: List<Announcement>,
+    actions: @Composable RowScope.() -> Unit = {},
+    expandedSecondaryActions: @Composable () -> Unit = {},
+    collapsedSecondaryActions: @Composable () -> Unit = {},
 ) {
-
-
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(searchBarState.currentValue) {
-        if (searchBarState.currentValue == SearchBarValue.Collapsed) {
+    LaunchedEffect(searchBarState.isAnimating) {
+        if (searchBarState.targetValue == SearchBarValue.Collapsed) {
             focusManager.clearFocus()
         }
     }
 
-    val searchBarInputField = remember(searchBarState, textFieldState, onSearch) {
-        @Composable {
+
+    val searchBarInputField = remember {
+        movableContentOf {
             SearchBarInputField(
-                modifier = modifier,
                 searchBarState = searchBarState,
                 textFieldState = textFieldState,
-                onSearch = {
+                modifier = modifier,
+                onSearch = { query ->
                     scope.launch {
                         searchBarState.animateToCollapsed()
-                        onSearch(it, emptyList(), emptyList())
+                        onSearch(query)
                     }
                 },
             )
@@ -63,31 +60,41 @@ fun SearchBar(
     }
 
     SearchBarCollapsed(
+        modifier = modifier,
+        actions = actions,
         inputField = searchBarInputField,
         scrollBehavior = scrollBehavior,
         searchBarState = searchBarState,
-        navigationIconButton = navigationIcon,
-        actionIcons = actionButton,
-        bottomContent = collapsedSupplementaryContent,
-        modifier = modifier
+        navigationIcon = navigationIcon,
+        collapsedSecondaryActions = collapsedSecondaryActions,
     )
 
     if (searchBarState.currentValue == SearchBarValue.Expanded) {
         SearchBarExpanded(
             modifier = modifier,
-            onSearch = { query, tags, authors ->
-                scope.launch {
-                    searchBarState.animateToCollapsed()
-                    onSearch(query, tags, authors)
-                }
-            },
-            navigateToAnnouncement = navigateToAnnouncement,
+            quickResults = quickResults,
             searchBarState = searchBarState,
             inputField = searchBarInputField,
-            announcements = announcementsQuickResults,
-            tagsQuickResults = tagsQuickResults,
-            authorsQuickResults = authorsQuickResults,
-            supplementaryContent = expandedSupplementaryContent
-        )
+            expandedSecondaryActions = expandedSecondaryActions,
+            onTagQuickResultClick = { tagId ->
+                scope.launch {
+                    searchBarState.animateToCollapsed()
+                    onTagQuickResultClick(tagId)
+                }
+            },
+            onAuthorQuickResultClick = { authorId ->
+                scope.launch {
+                    searchBarState.animateToCollapsed()
+                    onAuthorQuickResultClick(authorId)
+                }
+            },
+            onAnnouncementQuickResultClick = {
+                scope.launch {
+                    searchBarState.animateToCollapsed()
+                    onAnnouncementQuickResultClick(it)
+                }
+            },
+
+            )
     }
 }

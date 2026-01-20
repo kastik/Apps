@@ -21,7 +21,7 @@ fun SearchBarCollapsed(
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
-    secondaryActions: @Composable () -> Unit = {},
+    collapsedSecondaryActions: @Composable () -> Unit = {},
 ) {
     Surface(
         modifier = modifier
@@ -35,7 +35,7 @@ fun SearchBarCollapsed(
                 navigationIcon = navigationIcon,
                 actions = actions,
             )
-            Row { secondaryActions() }
+            Row { collapsedSecondaryActions() }
         }
     }
 }

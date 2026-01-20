@@ -21,25 +21,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.kastik.apps.core.model.aboard.Announcement
-import com.kastik.apps.core.model.aboard.Author
-import com.kastik.apps.core.model.aboard.Tag
-import com.kastik.apps.core.ui.QuickResultGroup
+import com.kastik.apps.core.model.search.QuickResults
 import com.kastik.apps.core.ui.announcement.AnnouncementCard
+import kotlinx.collections.immutable.toImmutableList
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBarExpanded(
-    navigateToAnnouncement: (Int) -> Unit,
-    onSearch: (query: String, tagsId: List<Int>, authorIds: List<Int>) -> Unit,
+    quickResults: QuickResults,
     searchBarState: SearchBarState,
     inputField: @Composable () -> Unit,
-    tagsQuickResults: List<Tag>,
-    authorsQuickResults: List<Author>,
-    announcements: List<Announcement>,
+    expandedSecondaryActions: @Composable () -> Unit,
     modifier: Modifier = Modifier,
-    supplementaryContent: @Composable () -> Unit = {},
+    onTagQuickResultClick: (tagId: Int) -> Unit = {},
+    onAuthorQuickResultClick: (authorId: Int) -> Unit = {},
+    onAnnouncementQuickResultClick: (announcementId: Int) -> Unit = {},
 ) {
     ExpandedFullScreenSearchBar(
         state = searchBarState,
@@ -50,21 +47,17 @@ fun SearchBarExpanded(
             modifier = Modifier.fillMaxSize()
         ) {
             Column {
-                supplementaryContent()
+                expandedSecondaryActions()
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                 ) {
                     item {
-                        QuickResultGroup(
-                            items = tagsQuickResults,
+                        SearchBarQuickResults(
+                            items = quickResults.tags,
                             icon = Icons.Default.Tag,
                             onItemClick = { tag ->
-                                onSearch(
-                                    "",
-                                    listOf(tag.id),
-                                    emptyList()
-                                )
+                                onTagQuickResultClick(tag.id)
                             },
                             labelProvider = { it.title },
                         )
@@ -72,21 +65,16 @@ fun SearchBarExpanded(
                             modifier = Modifier.padding(vertical = 16.dp),
                             thickness = 0.dp
                         )
-                        QuickResultGroup(
-                            items = authorsQuickResults,
+                        SearchBarQuickResults(
+                            items = quickResults.authors,
                             icon = Icons.Default.Person,
                             onItemClick = { author ->
-                                onSearch(
-                                    "",
-                                    emptyList(),
-                                    listOf(author.id)
-                                )
+                                onAuthorQuickResultClick(author.id)
                             },
                             labelProvider = { it.name },
                         )
                     }
-
-                    if (announcements.isNotEmpty()) {
+                    if (quickResults.announcements.isNotEmpty()) {
                         item {
                             Row(
                                 modifier = Modifier.padding(
@@ -103,12 +91,14 @@ fun SearchBarExpanded(
                             }
 
                         }
-                        items(announcements) { item ->
+                        items(quickResults.announcements) { item ->
                             AnnouncementCard(
-                                onClick = { navigateToAnnouncement(item.id) },
+                                onClick = { onAnnouncementQuickResultClick(item.id) },
                                 publisher = item.author,
                                 title = item.title,
-                                categories = remember(item.tags) { item.tags.map { it.title } },
+                                categories = remember(item.tags) {
+                                    item.tags.map { it.title }.toImmutableList()
+                                },
                                 date = item.date,
                                 content = remember(item.preview) { item.preview.orEmpty() },
                                 isPinned = item.pinned

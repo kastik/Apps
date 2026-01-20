@@ -1,4 +1,4 @@
-package com.kastik.apps.core.ui
+package com.kastik.apps.core.ui.topbar
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +21,7 @@ import com.kastik.apps.core.designsystem.theme.roundTopShape
 import kotlinx.collections.immutable.ImmutableList
 
 @Composable
-fun <T> QuickResultGroup(
+fun <T> SearchBarQuickResults(
     items: ImmutableList<T>,
     icon: ImageVector,
     onItemClick: (T) -> Unit,

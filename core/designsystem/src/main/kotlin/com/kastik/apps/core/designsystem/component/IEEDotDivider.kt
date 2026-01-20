@@ -1,4 +1,4 @@
-package com.kastik.apps.core.ui
+package com.kastik.apps.core.designsystem.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,22 +13,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun DotDivider() {
+fun IEEDotDivider() {
     Box(
         modifier = Modifier
             .size(4.dp)
             .background(
-                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), shape = CircleShape
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f), shape = CircleShape
             )
     )
 }
 
 @Preview
 @Composable
-fun DotDividerPreview() {
+fun IEEDotDividerPreview() {
     Surface {
         Row {
-            DotDivider()
+            IEEDotDivider()
         }
     }
 }
