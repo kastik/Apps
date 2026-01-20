@@ -17,6 +17,8 @@ class AndroidHiltConventionPlugin : Plugin<Project> {
             dependencies {
                 "implementation"(libs.findLibrary("hilt-android").get())
                 "ksp"(libs.findLibrary("hilt-android.compiler").get())
+                //TODO Remove this once hilt is updated [https://github.com/google/dagger/issues/5001]
+                "ksp"("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0")
             }
 
         }
