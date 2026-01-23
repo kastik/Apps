@@ -10,4 +10,5 @@ configure<LibraryExtension> {
 
 dependencies {
     implementation(project(":core:common"))
+    implementation(libs.coil.compose)
 }

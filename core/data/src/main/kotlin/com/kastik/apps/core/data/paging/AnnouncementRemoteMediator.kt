@@ -5,12 +5,14 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
+import com.kastik.apps.core.data.mappers.extractImages
 import com.kastik.apps.core.data.mappers.toAnnouncementEntity
 import com.kastik.apps.core.data.mappers.toAttachmentEntity
 import com.kastik.apps.core.data.mappers.toAuthorEntity
 import com.kastik.apps.core.data.mappers.toBodyEntity
 import com.kastik.apps.core.data.mappers.toTagCrossRefs
 import com.kastik.apps.core.data.mappers.toTagEntity
+import com.kastik.apps.core.data.utils.Base64ImageExtractor
 import com.kastik.apps.core.database.db.AppDatabase
 import com.kastik.apps.core.database.entities.RemoteKeys
 import com.kastik.apps.core.database.relations.AnnouncementPreviewRelation
@@ -27,6 +29,7 @@ class AnnouncementRemoteMediator(
     private val sortType: SortType = SortType.DESC,
     private val database: AppDatabase,
     private val announcementRemoteDataSource: AnnouncementRemoteDataSource,
+    private val base64ImageExtractor: Base64ImageExtractor
 ) : RemoteMediator<Int, AnnouncementPreviewRelation>() {
     private val remoteKeysDao = database.remoteKeysDao()
     private val announcementLocalDataSource = database.announcementDao()
@@ -116,7 +119,7 @@ class AnnouncementRemoteMediator(
         val mappedAnnouncements = dto.data.map { it.toAnnouncementEntity() }
         announcementLocalDataSource.insertOrIgnoreAnnouncements(mappedAnnouncements)
 
-        val mappedBodies = dto.data.map { it.toBodyEntity() }
+        val mappedBodies = dto.data.map { it.extractImages(base64ImageExtractor).toBodyEntity() }
         announcementLocalDataSource.insertOrIgnoreAnnouncementBody(mappedBodies)
 
         val mappedAttachments = dto.data.flatMap { it.attachments.map { it.toAttachmentEntity() } }

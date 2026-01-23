@@ -6,6 +6,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.map
 import androidx.room.withTransaction
+import com.kastik.apps.core.data.mappers.extractImages
 import com.kastik.apps.core.data.mappers.toAnnouncement
 import com.kastik.apps.core.data.mappers.toAnnouncementEntity
 import com.kastik.apps.core.data.mappers.toAttachmentEntity
@@ -14,6 +15,7 @@ import com.kastik.apps.core.data.mappers.toBodyEntity
 import com.kastik.apps.core.data.mappers.toTagCrossRefs
 import com.kastik.apps.core.data.mappers.toTagEntity
 import com.kastik.apps.core.data.paging.AnnouncementRemoteMediator
+import com.kastik.apps.core.data.utils.Base64ImageExtractor
 import com.kastik.apps.core.database.db.AppDatabase
 import com.kastik.apps.core.domain.repository.AnnouncementRepository
 import com.kastik.apps.core.model.aboard.Announcement
@@ -31,6 +33,7 @@ import javax.inject.Singleton
 internal class AnnouncementRepositoryImpl @Inject constructor(
     private val database: AppDatabase,
     private val announcementRemoteDataSource: AnnouncementRemoteDataSource,
+    private val base64ImageExtractor: Base64ImageExtractor,
 ) : AnnouncementRepository {
     private val announcementLocalDataSource = database.announcementDao()
     private val tagsLocalDataSource = database.tagsDao()
@@ -55,6 +58,7 @@ internal class AnnouncementRepositoryImpl @Inject constructor(
             tagIds = tagIds,
             database = database,
             announcementRemoteDataSource = announcementRemoteDataSource,
+            base64ImageExtractor = base64ImageExtractor
         ), pagingSourceFactory = {
             announcementLocalDataSource.getPagedAnnouncements(
                 sortType = sortType,
@@ -96,7 +100,11 @@ internal class AnnouncementRepositoryImpl @Inject constructor(
             announcementLocalDataSource.insertOrReplaceAnnouncement(remote.toAnnouncementEntity())
 
             announcementLocalDataSource.insertOrReplaceTagCrossRefs(remote.toTagCrossRefs())
-            announcementLocalDataSource.insertOrReplaceAnnouncementBody(remote.toBodyEntity())
+            announcementLocalDataSource.insertOrReplaceAnnouncementBody(
+                remote.extractImages(
+                    base64ImageExtractor
+                ).toBodyEntity()
+            )
             announcementLocalDataSource.insertOrReplaceAnnouncementAttachments(remote.attachments.map { it.toAttachmentEntity() })
         }
     }
