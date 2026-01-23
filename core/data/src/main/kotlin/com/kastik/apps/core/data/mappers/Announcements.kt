@@ -1,5 +1,6 @@
 package com.kastik.apps.core.data.mappers
 
+import com.kastik.apps.core.data.utils.Base64ImageExtractor
 import com.kastik.apps.core.database.entities.AnnouncementEntity
 import com.kastik.apps.core.database.entities.BodyEntity
 import com.kastik.apps.core.database.entities.TagsCrossRefEntity
@@ -34,6 +35,10 @@ fun AnnouncementDto.toTagCrossRefs() = tags.map { tag ->
         tagId = tag.id
     )
 }
+suspend fun AnnouncementDto.extractImages(extractor: Base64ImageExtractor) =
+    this.copy(
+        body = extractor.process(this.body)
+    )
 
 fun AnnouncementDto.toBodyEntity() = BodyEntity(
     announcementId = this.id,

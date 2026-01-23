@@ -32,6 +32,8 @@ fun NavGraphBuilder.announcementScreen(
         deepLinks = listOf(
             navDeepLink {
                 uriPattern = "com.kastik.apps://announcement?id={id}"
+            },
+            navDeepLink {
                 uriPattern = "https://aboard.iee.ihu.gr/announcements/{id}"
             }),
         enterTransition = { scaleIn() },

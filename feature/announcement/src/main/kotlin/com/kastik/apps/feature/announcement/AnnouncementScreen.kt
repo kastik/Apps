@@ -35,6 +35,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import com.kastik.apps.core.designsystem.component.IEEDotDivider
 import com.kastik.apps.core.designsystem.component.IEETag
 import com.kastik.apps.core.model.aboard.Attachment
@@ -87,17 +90,14 @@ internal fun AnnouncementRoute(
                 title = state.announcement.title,
                 author = state.announcement.author,
                 date = state.announcement.date,
-                body = state.announcement.body,
+                prossedBodies = state.processedBody,
                 tags = state.announcement.tags.toImmutableList(),
                 attachments = state.announcement.attachments.toImmutableList(),
                 navigateBack = navigateBack,
                 onAttachmentClick = viewModel::downloadAttachment
             )
-
         }
     }
-
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -107,7 +107,7 @@ private fun SuccessState(
     title: String,
     author: String,
     date: String,
-    body: String,
+    prossedBodies: ImmutableList<ProcessedBody>,
     tags: ImmutableList<Tag>,
     attachments: ImmutableList<Attachment>,
     onAttachmentClick: (Int, Int, String, String) -> Unit,
@@ -176,22 +176,21 @@ private fun SuccessState(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+        if (prossedBodies.isNotEmpty()) {
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
             ) {
-                SelectionContainer {
-                    Text(
-                        text = AnnotatedString.fromHtml(body),
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            lineHeight = 24.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    prossedBodies.forEach { part ->
+                        when (part) {
+                            is ProcessedBody.Text -> HtmlText(part)
+                            is ProcessedBody.Image -> HtmlImage(part)
+                        }
+                    }
                 }
             }
         }
@@ -253,6 +252,30 @@ private fun SuccessState(
     }
 }
 
+
+@Composable
+private fun HtmlText(text: ProcessedBody.Text) {
+    SelectionContainer {
+        Text(
+            text = text.text,
+            style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 24.sp),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+@Composable
+private fun HtmlImage(image: ProcessedBody.Image) {
+    AsyncImage(
+        model = image.url,
+        contentDescription = null,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp)),
+        contentScale = ContentScale.FillWidth
+    )
+}
+
 @Preview
 @Composable
 fun SuccessStatePreview() {
@@ -260,8 +283,8 @@ fun SuccessStatePreview() {
         announcementId = 1,
         title = "Announcement Title",
         author = "Kostas Papastathopoulos",
+        prossedBodies = persistentListOf(ProcessedBody.Text(AnnotatedString.fromHtml("Announcement Body"))),
         date = "2/10/2025",
-        body = "The body of the announcement.",
         tags = persistentListOf(
             Tag(id = 1, title = "Tag 1"),
             Tag(id = 2, title = "Tag 3"),
