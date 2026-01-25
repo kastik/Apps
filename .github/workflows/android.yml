@@ -1,5 +1,6 @@
 name: Android CI
 
+#TODO Change this to master once finished
 on:
   push:
     branches: [ "actions" ]
@@ -14,7 +15,7 @@ jobs:
   tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 120
 
     steps:
       - uses: actions/checkout@v4
@@ -55,6 +56,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Decode Google Services
+        env:
+          ENCODED_STRING: ${{ secrets.GOOGLE_SERVICES_FILE }}
+        run: echo $ENCODED_STRING | base64 -d > app/google-services.json
 
       - name: Decode Keystore
         env:
