@@ -1,11 +1,10 @@
 name: Android CI
 
-#TODO Change this to master once finished
 on:
   push:
-    branches: [ "actions" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "actions" ]
+    branches: [ "master" ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -29,7 +28,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/actions' }}
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
 
       - name: Make gradlew executable
         run: chmod +x gradlew
@@ -38,10 +37,13 @@ jobs:
         run: ./gradlew :core:data:testDebugUnitTest :core:database:testDebugUnitTest
 
   build:
-    #needs: test
+    needs: tests
     name: Build Release
     runs-on: ubuntu-latest
     timeout-minutes: 120
+
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -55,7 +57,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/actions' }}
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
 
       - name: Decode Google Services
         env:
