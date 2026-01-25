@@ -71,7 +71,7 @@ import com.kastik.apps.core.ui.extensions.TrackScreenViewEvent
 import com.kastik.apps.core.ui.extensions.isScrollingUp
 import com.kastik.apps.core.ui.extensions.launchSignIn
 import com.kastik.apps.core.ui.extensions.shareAnnouncement
-import com.kastik.apps.core.ui.pagging.AnnouncementFeed
+import com.kastik.apps.core.ui.paging.AnnouncementFeed
 import com.kastik.apps.core.ui.placeholder.LoadingContent
 import com.kastik.apps.core.ui.placeholder.StatusContent
 import com.kastik.apps.core.ui.sheet.GenericFilterSheet
@@ -173,7 +173,10 @@ private fun HomeScreenContent(
             expanded = (lazyListState.isScrollingUp()),
             expandedAction = {
                 analytics.logEvent("scroll_up_clicked")
-                scope.launch { lazyListState.animateScrollToItem(0) }
+                scope.launch {
+                    searchScroll.scrollOffset = 0f
+                    lazyListState.animateScrollToItem(0)
+                }
             },
             collapsedAction = {
                 analytics.logEvent("search_clicked")
@@ -181,8 +184,8 @@ private fun HomeScreenContent(
                     "", persistentListOf(), persistentListOf()
                 )
             },
-            expandedIcon = { Icon(Icons.Filled.ArrowUpward, null) },
-            collapsedIcon = { Icon(Icons.Filled.Search, null) },
+            expandedIcon = { Icon(Icons.Filled.ArrowUpward, "Scroll to top") },
+            collapsedIcon = { Icon(Icons.Filled.Search, "Go to search") },
         )
 
 
@@ -225,7 +228,7 @@ private fun HomeScreenContent(
                     }) {
                     Icon(
                         Icons.Default.AccountCircle,
-                        contentDescription = null,
+                        contentDescription = if (uiState.isSignedIn) "Profile" else "Sign in",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -237,7 +240,7 @@ private fun HomeScreenContent(
                 }) {
                     Icon(
                         Icons.Default.Settings,
-                        contentDescription = null,
+                        contentDescription = "Settings",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -327,7 +330,7 @@ private fun HomeScreenContent(
                 showTagSheet.value = false
             },
 
-        )
+            )
     }
     if (showAuthorSheet.value) {
         GenericFilterSheet(

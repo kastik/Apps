@@ -16,7 +16,6 @@ import com.kastik.apps.feature.search.navigation.navigateToSearch
 import com.kastik.apps.feature.search.navigation.searchScreen
 import com.kastik.apps.feature.settings.navigation.navigateToSettings
 import com.kastik.apps.feature.settings.navigation.settingsScreen
-import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 fun IEENavHost() {
@@ -27,26 +26,24 @@ fun IEENavHost() {
         startDestination = HomeRoute,
     ) {
         homeScreen(
-            navigateToSearch = { query: String, tags: ImmutableList<Int>, authors: ImmutableList<Int> ->
-                navController.navigateToSearch(query = query, tags = tags, authors = authors)
-            },
-            navigateToAnnouncement = { navController.navigateToAnnouncement(it) },
-            navigateToSettings = { navController.navigateToSettings() },
-            navigateToProfile = { navController.navigateToProfile() },
+            navigateToSearch = navController::navigateToSearch,
+            navigateToAnnouncement = navController::navigateToAnnouncement,
+            navigateToSettings = navController::navigateToSettings,
+            navigateToProfile = navController::navigateToProfile,
         )
 
         searchScreen(
-            navigateBack = { navController.popBackStack() },
-            navigateToAnnouncement = { navController.navigateToAnnouncement(it) },
+            navigateBack = navController::popBackStack,
+            navigateToAnnouncement = navController::navigateToAnnouncement,
         )
 
-        authenticationScreen({ navController.popBackStack() })
+        authenticationScreen(navigateBack = navController::popBackStack)
 
-        settingsScreen(navigateToLicenses = { navController.navigateToLicences() })
+        settingsScreen(navigateToLicenses = navController::navigateToLicences)
 
-        profileScreen({ navController.popBackStack() })
+        profileScreen(navigateBack = navController::popBackStack)
 
-        announcementScreen({ navController.popBackStack() })
+        announcementScreen(navigateBack = navController::popBackStack)
 
         licenseScreen()
 

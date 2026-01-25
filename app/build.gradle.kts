@@ -40,7 +40,6 @@ configure<ApplicationExtension> {
             isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
-            baselineProfile.automaticGenerationDuringBuild = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -80,10 +79,19 @@ dependencies {
 
     baselineProfile(project(":benchmark"))
     implementation(libs.androidx.profileinstaller)
-
 }
 
 baselineProfile {
-    automaticGenerationDuringBuild = false
-    dexLayoutOptimization = true
+    saveInSrc = true
+    mergeIntoMain = false
+    variants {
+        create("release") {
+            dexLayoutOptimization = true
+            automaticGenerationDuringBuild = true
+        }
+        create("debug") {
+            dexLayoutOptimization = false
+            automaticGenerationDuringBuild = false
+        }
+    }
 }

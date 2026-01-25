@@ -13,6 +13,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.kastik.apps.core.model.search.QuickResults
 import kotlinx.coroutines.launch
 
@@ -48,7 +50,7 @@ fun SearchBar(
             SearchBarInputField(
                 searchBarState = searchBarState,
                 textFieldState = textFieldState,
-                modifier = modifier,
+                modifier = Modifier.semantics { contentDescription = "search_bar:input_field" },
                 onSearch = { query ->
                     scope.launch {
                         searchBarState.animateToCollapsed()
