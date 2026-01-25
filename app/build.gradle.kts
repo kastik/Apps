@@ -91,7 +91,7 @@ baselineProfile {
     variants {
         create("release") {
             dexLayoutOptimization = true
-            automaticGenerationDuringBuild = true
+            automaticGenerationDuringBuild = false
         }
         create("debug") {
             dexLayoutOptimization = false
