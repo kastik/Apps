@@ -91,8 +91,7 @@ baselineProfile {
     variants {
         create("release") {
             dexLayoutOptimization = true
-            //TODO Enable this once finished with github actions
-            automaticGenerationDuringBuild = false
+            automaticGenerationDuringBuild = true
         }
         create("debug") {
             dexLayoutOptimization = false
