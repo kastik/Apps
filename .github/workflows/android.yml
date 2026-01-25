@@ -36,6 +36,7 @@ jobs:
         run: ./gradlew :core:data:testDebugUnitTest :core:database:testDebugUnitTest
 
   build:
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
