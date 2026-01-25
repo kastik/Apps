@@ -64,7 +64,7 @@ jobs:
 
       - name: Decode Keystore
         env:
-          ENCODED_STRING: ${{ secrets.RELEASE_KEYSTORE_BASE }}
+          ENCODED_STRING: ${{ secrets.RELEASE_KEYSTORE_FILE }}
         run: echo $ENCODED_STRING | base64 -d > app/release.jks
 
       - name: Make gradlew executable
