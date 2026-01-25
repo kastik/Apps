@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   tests:
-    name: Unit Tests
+    name: Tests
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
@@ -29,7 +29,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          cache-read-only: ${{ github.ref != 'refs/heads/actions' }}
 
       - name: Make gradlew executable
         run: chmod +x gradlew
@@ -55,7 +55,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          cache-read-only: ${{ github.ref != 'refs/heads/actions' }}
 
       - name: Decode Google Services
         env:
