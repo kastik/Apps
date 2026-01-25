@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
@@ -52,12 +54,13 @@ fun AnnouncementFeed(
     val refreshState = announcements.loadState.refresh
     val appendState = announcements.loadState.append
     val vibrator = LocalHapticFeedback.current
-    val _ = LocalAnalytics.current
+    val analytics = LocalAnalytics.current
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            .semantics { contentDescription = "announcement_feed" },
         state = lazyListState,
         contentPadding = contentPadding
     ) {
@@ -69,10 +72,18 @@ fun AnnouncementFeed(
             item?.let {
                 AnnouncementCard(
                     onClick = {
+                        analytics.logEvent(
+                            "announcement_click",
+                            mapOf("announcement_id" to item.id)
+                        )
                         vibrator.performHapticFeedback(HapticFeedbackType.Confirm)
                         onAnnouncementClick(item.id)
                     },
                     onLonClick = {
+                        analytics.logEvent(
+                            "announcement_long_click",
+                            mapOf("announcement_id" to item.id)
+                        )
                         vibrator.performHapticFeedback(HapticFeedbackType.LongPress)
                         onAnnouncementLongClick(item.id)
                     },

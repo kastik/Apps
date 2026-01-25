@@ -20,6 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.kastik.apps.core.model.search.QuickResults
 import com.kastik.apps.core.ui.announcement.AnnouncementCard
@@ -51,9 +53,13 @@ fun SearchBarExpanded(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
+                        .semantics { contentDescription = "search_bar:quick_results" }
                 ) {
                     item {
                         SearchBarQuickResults(
+                            modifier = Modifier.semantics {
+                                contentDescription = "search_bar:tag_quick_results"
+                            },
                             items = quickResults.tags,
                             icon = Icons.Default.Tag,
                             onItemClick = { tag ->
@@ -66,6 +72,9 @@ fun SearchBarExpanded(
                             thickness = 0.dp
                         )
                         SearchBarQuickResults(
+                            modifier = Modifier.semantics {
+                                contentDescription = "search_bar:author_quick_results"
+                            },
                             items = quickResults.authors,
                             icon = Icons.Default.Person,
                             onItemClick = { author ->
@@ -93,6 +102,9 @@ fun SearchBarExpanded(
                         }
                         items(quickResults.announcements) { item ->
                             AnnouncementCard(
+                                modifier = Modifier.semantics {
+                                    contentDescription = "search_bar:announcement_quick_results"
+                                },
                                 onClick = { onAnnouncementQuickResultClick(item.id) },
                                 publisher = item.author,
                                 title = item.title,

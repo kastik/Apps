@@ -1,15 +1,14 @@
 package com.kastik.benchmark.apps.baselineprofile
 
 import androidx.benchmark.macro.junit4.BaselineProfileRule
-import com.kastik.benchmark.apps.home.refreshFeed
-import com.kastik.benchmark.apps.home.scrollSearchBarResults
 import com.kastik.benchmark.apps.launchAppAndDismissSigningDialog
-import com.kastik.benchmark.apps.scrollFeed
+import com.kastik.benchmark.apps.licence.navigateToLicences
+import com.kastik.benchmark.apps.licence.openRandomLicence
+import com.kastik.benchmark.apps.licence.scrollLicencesList
 import org.junit.Rule
 import org.junit.Test
 
-
-class HomeBaselineProfile {
+class LicenceScreenBaselineProfile {
 
     @get:Rule
     val baselineProfileRule = BaselineProfileRule()
@@ -19,8 +18,8 @@ class HomeBaselineProfile {
         "com.kastik.apps",
     ) {
         launchAppAndDismissSigningDialog()
-        scrollFeed()
-        refreshFeed()
-        scrollSearchBarResults()
+        navigateToLicences()
+        scrollLicencesList()
+        openRandomLicence()
     }
 }

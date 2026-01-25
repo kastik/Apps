@@ -173,7 +173,10 @@ private fun HomeScreenContent(
             expanded = (lazyListState.isScrollingUp()),
             expandedAction = {
                 analytics.logEvent("scroll_up_clicked")
-                scope.launch { lazyListState.animateScrollToItem(0) }
+                scope.launch {
+                    searchScroll.scrollOffset = 0f
+                    lazyListState.animateScrollToItem(0)
+                }
             },
             collapsedAction = {
                 analytics.logEvent("search_clicked")
