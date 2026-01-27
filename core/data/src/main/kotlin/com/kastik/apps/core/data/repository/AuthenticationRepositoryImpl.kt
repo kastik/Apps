@@ -4,6 +4,8 @@ import com.kastik.apps.core.datastore.AuthenticationLocalDataSource
 import com.kastik.apps.core.domain.repository.AuthenticationRepository
 import com.kastik.apps.core.network.datasource.AuthenticationRemoteDataSource
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,34 +16,41 @@ internal class AuthenticationRepositoryImpl @Inject constructor(
     private val authenticationRemoteDataSource: AuthenticationRemoteDataSource,
 ) : AuthenticationRepository {
 
-    override suspend fun exchangeCodeForAppsToken(code: String) = withContext(Dispatchers.IO) {
-        val response = authenticationRemoteDataSource.exchangeCodeForAppsToken(code)
-        authenticationLocalDataSource.saveAppsTokens(response.accessToken, response.refreshToken)
+    override fun getIsSignedIn(): Flow<Boolean> =
+        authenticationLocalDataSource.getIsSignedIn()
+
+    override suspend fun refreshIsSignedIn() {
+        authenticationRemoteDataSource.checkIfTokenIsValid().let {
+            authenticationLocalDataSource.setIsSignedIn(it)
+        }
     }
 
     override suspend fun exchangeCodeForAbroadToken(code: String) = withContext(Dispatchers.IO) {
         val response = authenticationRemoteDataSource.exchangeCodeForAboardToken(code)
-        authenticationLocalDataSource.saveAboardToken((response.accessToken))
-        authenticationLocalDataSource.saveAboardTokenExpiration(response.expiresIn)
+        authenticationLocalDataSource.setAboardAccessToken((response.accessToken))
+        authenticationLocalDataSource.setAboardTokenExpiration(response.expiresIn)
+        authenticationLocalDataSource.setAboardTokenLastRefreshTime(
+            System.currentTimeMillis().toInt()
+        )
+        authenticationLocalDataSource.setIsSignedIn(true)
+    }
+
+    override suspend fun refreshAboardToken() {
+        val currentToken = authenticationLocalDataSource.getAboardAccessToken().first()
+            ?: throw IllegalStateException("Aboard token is null")
+        val response = authenticationRemoteDataSource.refreshAboardToken(currentToken)
+        authenticationLocalDataSource.setAboardAccessToken(response.accessToken)
+        authenticationLocalDataSource.setAboardTokenExpiration(response.expiresIn)
+        authenticationLocalDataSource.setAboardTokenLastRefreshTime(
+            System.currentTimeMillis().toInt()
+        )
     }
 
     override suspend fun getAboardToken(): String? {
-        return authenticationLocalDataSource.getAboardAccessToken()
+        return authenticationLocalDataSource.getAboardAccessToken().first()
     }
 
-    override suspend fun checkAboardTokenValidity(): Boolean {
-        if (authenticationLocalDataSource.getAboardAccessToken() == null) {
-            return false
-        }
-
-        val response = authenticationRemoteDataSource.checkIfTokenIsValid()
-        return response
+    override suspend fun clearAuthenticationData() = withContext(Dispatchers.IO) {
+        authenticationLocalDataSource.clearAuthenticationData()
     }
-
-
-    override suspend fun clearTokens() = withContext(Dispatchers.IO) {
-        authenticationLocalDataSource.clearAboardToken()
-        authenticationLocalDataSource.clearAppsToken()
-    }
-
 }

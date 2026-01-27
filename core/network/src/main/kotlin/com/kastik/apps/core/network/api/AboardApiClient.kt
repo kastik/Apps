@@ -10,6 +10,7 @@ import com.kastik.apps.core.network.model.aboard.SingleAnnouncementResponse
 import com.kastik.apps.core.network.model.aboard.SubscribableTagsDto
 import com.kastik.apps.core.network.model.aboard.SubscribedTagDto
 import com.kastik.apps.core.network.model.aboard.TagsResponseDto
+import com.kastik.apps.core.network.model.aboard.Token
 import com.kastik.apps.core.network.model.aboard.UpdateUserSubscriptionsDto
 import com.kastik.apps.core.network.model.aboard.UserProfileDto
 import okhttp3.ResponseBody
@@ -73,6 +74,11 @@ interface AboardApiClient {
     @GET("authenticate")
     suspend fun exchangeCodeForAboardToken(
         @Query("code") code: String,
+    ): AboardAuthTokenDto
+
+    @POST("auth/token")
+    suspend fun refreshToken(
+        @Body token: Token
     ): AboardAuthTokenDto
 
     @GET("auth/whoami")

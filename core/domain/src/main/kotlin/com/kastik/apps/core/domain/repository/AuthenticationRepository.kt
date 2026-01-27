@@ -1,11 +1,14 @@
 package com.kastik.apps.core.domain.repository
 
+import kotlinx.coroutines.flow.Flow
+
 
 interface AuthenticationRepository {
-    suspend fun exchangeCodeForAppsToken(code: String)
+    fun getIsSignedIn(): Flow<Boolean>
+    suspend fun refreshIsSignedIn()
+    suspend fun refreshAboardToken()
     suspend fun exchangeCodeForAbroadToken(code: String)
-    suspend fun checkAboardTokenValidity(): Boolean
     suspend fun getAboardToken(): String?
-    suspend fun clearTokens()
+    suspend fun clearAuthenticationData()
 
 }

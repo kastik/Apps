@@ -24,10 +24,6 @@ internal class ProfileRepositoryImpl @Inject constructor(
     private val pushNotificationsDatasource: PushNotificationsDatasource,
 ) : ProfileRepository {
 
-    override fun isSignedIn(): Flow<Boolean> {
-        return profileLocalDataSource.getProfile().map { it.id != 0 }
-    }
-
     override fun getProfile(): Flow<Profile> {
         return profileLocalDataSource.getProfile().map { profile -> profile.toProfile() }
     }

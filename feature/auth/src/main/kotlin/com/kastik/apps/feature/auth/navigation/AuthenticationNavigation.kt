@@ -3,7 +3,6 @@ package com.kastik.apps.feature.auth.navigation
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
@@ -11,7 +10,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
 import com.kastik.apps.feature.auth.AuthenticationRoute
-import com.kastik.apps.feature.auth.AuthenticationScreenViewModel
 import kotlinx.serialization.Serializable
 
 
@@ -39,17 +37,9 @@ fun NavGraphBuilder.authenticationScreen(
         enterTransition = { scaleIn() },
         exitTransition = { fadeOut() },
         popEnterTransition = { fadeIn() }) { backStackEntry ->
-        val args = backStackEntry.toRoute<AuthRoute>()
+        val _ = backStackEntry.toRoute<AuthRoute>()
         AuthenticationRoute(
             navigateBack = navigateBack,
-            viewModel = hiltViewModel<AuthenticationScreenViewModel, AuthenticationScreenViewModel.Factory> { factory ->
-                factory.create(
-                    code = args.code,
-                    state = args.state,
-                    error = args.error,
-                    errorDesc = args.error_description
-                )
-            }
         )
     }
 }

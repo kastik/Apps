@@ -2,7 +2,6 @@ package com.kastik.apps.core.di
 
 import com.kastik.apps.core.datastore.AuthenticationLocalDataSource
 import com.kastik.apps.core.network.api.AboardApiClient
-import com.kastik.apps.core.network.api.AppsApiClient
 import com.kastik.apps.core.network.datasource.AnnouncementRemoteDataSource
 import com.kastik.apps.core.network.datasource.AnnouncementRemoteDataSourceImpl
 import com.kastik.apps.core.network.datasource.AuthenticationRemoteDataSource
@@ -47,19 +46,6 @@ object NetworkModule {
         isLenient = true
     }
 
-    @Provides
-    @Singleton
-    @AuthOkHttp
-    fun provideAuthOkHttp(): OkHttpClient {
-        val logger = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
-
-        return OkHttpClient.Builder()
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .addInterceptor(logger)
-            .build()
-    }
-
     //TODO Remove logging from release builds
     @Provides
     @Singleton
@@ -73,23 +59,6 @@ object NetworkModule {
             .readTimeout(30, TimeUnit.SECONDS)
             .addInterceptor(tokenInterceptor)
             .addInterceptor(logger)
-            .build()
-    }
-
-    //TODO Remove logging from release builds
-    @Provides
-    @Singleton
-    @AuthRetrofit
-    fun provideAuthRetrofit(
-        @AuthOkHttp client: OkHttpClient,
-        json: Json
-    ): Retrofit {
-        val contentType = "application/json".toMediaType()
-        return Retrofit.Builder()
-            .baseUrl("https://login.iee.ihu.gr/")
-            .addConverterFactory(ScalarsConverterFactory.create())
-            .addConverterFactory(json.asConverterFactory(contentType))
-            .client(client)
             .build()
     }
 
@@ -112,21 +81,15 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAuthenticationApi(@AuthRetrofit retrofit: Retrofit): AppsApiClient =
-        retrofit.create(AppsApiClient::class.java)
-
-    @Provides
-    @Singleton
     fun provideAnnouncementApi(@AnnRetrofit retrofit: Retrofit): AboardApiClient =
         retrofit.create(AboardApiClient::class.java)
 
     @Provides
     @Singleton
     fun provideAuthenticationRemoteDataSource(
-        appsApiClient: AppsApiClient,
         aboardApiClient: AboardApiClient
     ): AuthenticationRemoteDataSource =
-        AuthenticationRemoteDataSourceImpl(appsApiClient, aboardApiClient)
+        AuthenticationRemoteDataSourceImpl(aboardApiClient)
 
     @Provides
     @Singleton
@@ -164,7 +127,7 @@ class TokenProvider @Inject constructor(
     localDataSource: AuthenticationLocalDataSource,
 ) {
     val token: StateFlow<String?> =
-        localDataSource.getAboardAccessTokenFlow()
+        localDataSource.getAboardAccessToken()
             .distinctUntilChanged()
             .stateIn(
                 scope = appScope,

@@ -17,7 +17,7 @@ fun Context.shareAnnouncement(announcementId: Int) {
 
 fun Context.launchSignIn() {
     //TODO Shouldn't hard code this, move it to gradle at some point
-    val url = "https://login.it.teithe.gr/authorization?" +
+    val url = "https://login.iee.ihu.gr/authorization?" +
             "client_id=690a9861468c9b767cabdc40" + "&response_type=code" +
             "&scope=announcements,profile" +
             "&redirect_uri=com.kastik.apps://auth"

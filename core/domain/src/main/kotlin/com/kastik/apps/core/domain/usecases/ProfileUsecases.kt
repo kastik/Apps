@@ -3,32 +3,27 @@ package com.kastik.apps.core.domain.usecases
 import com.kastik.apps.core.domain.repository.AnnouncementRepository
 import com.kastik.apps.core.domain.repository.AuthenticationRepository
 import com.kastik.apps.core.domain.repository.ProfileRepository
-import com.kastik.apps.core.model.aboard.Profile
+import com.kastik.apps.core.model.aboard.UserData
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import java.util.concurrent.ExecutionException
 import javax.inject.Inject
 
-
-class GetIsSignedInUseCase @Inject constructor(
-    private val profileRepository: ProfileRepository
-) {
-    operator fun invoke(): Flow<Boolean> =
-        profileRepository.isSignedIn()
-}
-
 class GetUserProfileUseCase @Inject constructor(
     private val profileRepository: ProfileRepository,
 ) {
-    operator fun invoke(): Flow<Profile> {
-        try {
-            return profileRepository.getProfile()
-        } catch (e: Exception) {
-            //firebaseRepo.unsubscribeFromAllTopics()
-            throw e
+    operator fun invoke(): Flow<UserData> =
+        combine(
+            profileRepository.getProfile(),
+            profileRepository.getEmailSubscriptions().map { it.toImmutableList() }
+        ) { profile, subscriptions ->
+            UserData(
+                profile = profile,
+                subscriptions = subscriptions
+            )
         }
-    }
 }
 
 class RefreshUserProfileUseCase @Inject constructor(
@@ -57,11 +52,6 @@ class RefreshSubscriptionsUseCase @Inject constructor(
     }
 }
 
-class GetSubscriptionsUseCase @Inject constructor(
-    private val profileRepository: ProfileRepository
-) {
-    operator fun invoke() = profileRepository.getEmailSubscriptions().map { it.toImmutableList() }
-}
 
 class SubscribeToTagsUseCase @Inject constructor(
     private val profileRepository: ProfileRepository,
@@ -80,12 +70,11 @@ class SignOutUserUseCase @Inject constructor(
     ) {
     suspend operator fun invoke() {
         profileRepository.clearLocalData()
-        authenticationRepository.clearTokens()
+        authenticationRepository.clearAuthenticationData()
         announcementRepository.clearAnnouncementCache()
         try {
             profileRepository.unsubscribeFromAllTopics()
         } catch (e: ExecutionException) {
         }
-
     }
 }

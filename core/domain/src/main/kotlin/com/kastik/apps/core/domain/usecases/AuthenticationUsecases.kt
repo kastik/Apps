@@ -1,13 +1,22 @@
 package com.kastik.apps.core.domain.usecases
 
 import com.kastik.apps.core.domain.repository.AuthenticationRepository
+import com.kastik.apps.core.domain.service.TokenSyncScheduler
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class ExchangeCodeForAppsTokenUseCase @Inject constructor(
+class GetIsSignedInUseCase @Inject constructor(
     private val authenticationRepository: AuthenticationRepository
 ) {
-    suspend operator fun invoke(code: String) =
-        authenticationRepository.exchangeCodeForAppsToken(code)
+    operator fun invoke(): Flow<Boolean> =
+        authenticationRepository.getIsSignedIn()
+}
+
+class RefreshIsSignedInUseCase @Inject constructor(
+    private val authenticationRepository: AuthenticationRepository
+) {
+    suspend operator fun invoke() =
+        authenticationRepository.refreshIsSignedIn()
 }
 
 class ExchangeCodeForAboardTokenUseCase @Inject constructor(

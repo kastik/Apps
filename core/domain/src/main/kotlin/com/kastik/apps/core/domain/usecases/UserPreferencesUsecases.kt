@@ -1,6 +1,6 @@
 package com.kastik.apps.core.domain.usecases
 
-import com.kastik.apps.core.domain.repository.ProfileRepository
+import com.kastik.apps.core.domain.repository.AuthenticationRepository
 import com.kastik.apps.core.domain.repository.UserPreferencesRepository
 import com.kastik.apps.core.model.aboard.SortType
 import com.kastik.apps.core.model.user.SearchScope
@@ -53,12 +53,12 @@ class SetDynamicColorUseCase @Inject constructor(
 }
 
 class ShowSignInNoticeRationalUseCase @Inject constructor(
-    private val profileRepository: ProfileRepository,
+    private val authenticationRepository: AuthenticationRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
 ) {
     operator fun invoke(): Flow<Boolean> {
         return combine(
-            profileRepository.isSignedIn(),
+            authenticationRepository.getIsSignedIn(),
             userPreferencesRepository.getHasSkippedSignIn()
         ) { isSignedIn, hasSkipped ->
             !isSignedIn && !hasSkipped
