@@ -1,7 +1,7 @@
 package com.kastik.apps.core.domain.usecases
 
 import com.kastik.apps.core.domain.repository.AuthenticationRepository
-import com.kastik.apps.core.domain.service.TokenSyncScheduler
+import com.kastik.apps.core.domain.service.TokenRefreshScheduler
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -26,8 +26,8 @@ class ExchangeCodeForAboardTokenUseCase @Inject constructor(
         authenticationRepository.exchangeCodeForAbroadToken(code)
 }
 
-class CheckIfTokenIsValidUseCase @Inject constructor(
-    private val authenticationRepository: AuthenticationRepository
+class StartTokenRefreshScheduleUseCase @Inject constructor(
+    private val tokenScheduler: TokenRefreshScheduler
 ) {
-    suspend operator fun invoke() = authenticationRepository.checkAboardTokenValidity()
+    operator fun invoke() = tokenScheduler.scheduleRefresh()
 }

@@ -5,7 +5,6 @@ import com.kastik.apps.core.model.aboard.Tag
 import kotlinx.coroutines.flow.Flow
 
 interface ProfileRepository {
-    fun isSignedIn(): Flow<Boolean>
     fun getProfile(): Flow<Profile>
     suspend fun refreshProfile()
     fun getEmailSubscriptions(): Flow<List<Tag>>

@@ -8,12 +8,14 @@ import com.kastik.apps.core.data.repository.TagsRepositoryImpl
 import com.kastik.apps.core.data.repository.UserPreferencesRepositoryImpl
 import com.kastik.apps.core.data.utils.Base64ImageExtractor
 import com.kastik.apps.core.data.utils.Base64ImageExtractorImpl
+import com.kastik.apps.core.data.utils.TokenRefreshSchedulerImpl
 import com.kastik.apps.core.domain.repository.AnnouncementRepository
 import com.kastik.apps.core.domain.repository.AuthenticationRepository
 import com.kastik.apps.core.domain.repository.AuthorRepository
 import com.kastik.apps.core.domain.repository.ProfileRepository
 import com.kastik.apps.core.domain.repository.TagsRepository
 import com.kastik.apps.core.domain.repository.UserPreferencesRepository
+import com.kastik.apps.core.domain.service.TokenRefreshScheduler
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -58,5 +60,10 @@ abstract class DataModule {
     internal abstract fun bindBase64ImageExtractor(
         imageExtractorImpl: Base64ImageExtractorImpl
     ): Base64ImageExtractor
+
+    @Binds
+    abstract fun bindTokenRefreshScheduler(
+        tokenRefreshScheduler: TokenRefreshSchedulerImpl
+    ): TokenRefreshScheduler
 
 }

@@ -76,7 +76,6 @@ internal class Base64ImageExtractorImpl @Inject constructor(
                 FileOutputStream(file).use { it.write(bytes) }
                 file
             } catch (e: Exception) {
-                e.printStackTrace()
                 null
             }
         }

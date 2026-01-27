@@ -64,7 +64,6 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:ui"))
     implementation(project(":core:designsystem"))
-
     implementation(project(":feature:home"))
     implementation(project(":feature:auth"))
     implementation(project(":feature:announcement"))
@@ -73,6 +72,7 @@ dependencies {
     implementation(project(":feature:licenses"))
     implementation(project(":feature:search"))
 
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.crashlytics.ndk)

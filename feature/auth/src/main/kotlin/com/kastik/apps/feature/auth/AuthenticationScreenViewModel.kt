@@ -8,7 +8,7 @@ import com.kastik.apps.core.domain.usecases.ExchangeCodeForAboardTokenUseCase
 import com.kastik.apps.core.domain.usecases.RefreshSubscriptionsUseCase
 import com.kastik.apps.core.domain.usecases.RefreshUserProfileUseCase
 import com.kastik.apps.core.domain.usecases.SignOutUserUseCase
-import com.kastik.apps.core.domain.usecases.StartTokenRefreshJob
+import com.kastik.apps.core.domain.usecases.StartTokenRefreshScheduleUseCase
 import com.kastik.apps.core.domain.usecases.SubscribeToTagsUseCase
 import com.kastik.apps.feature.auth.navigation.AuthRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +26,7 @@ class AuthenticationScreenViewModel @Inject constructor(
     private val refreshUserProfileUseCase: RefreshUserProfileUseCase,
     private val refreshSubscriptionsUseCase: RefreshSubscriptionsUseCase,
     private val subscribeToTagsUseCase: SubscribeToTagsUseCase,
-    private val startTokenRefreshJob: StartTokenRefreshJob,
+    private val startTokenRefreshScheduleUseCase: StartTokenRefreshScheduleUseCase,
     private val signOutUserUseCase: SignOutUserUseCase
 ) : ViewModel() {
 
@@ -46,7 +46,7 @@ class AuthenticationScreenViewModel @Inject constructor(
         exchangeCodeForToken(args.code)
         refreshUserProfileUseCase()
         refreshSubscriptionsUseCase()
-        startTokenRefreshJob()
+        startTokenRefreshScheduleUseCase()
         emit(UiState.Success)
 
     }.catch {

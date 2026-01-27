@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.paging.common)
     implementation(libs.retrofit)
+    implementation(libs.androidx.work.runtime.ktx)
     testImplementation(libs.androidx.paging.testing)
     testImplementation(libs.androidx.runner)
     testImplementation(libs.io.mockk)
