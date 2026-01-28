@@ -3,10 +3,8 @@ package com.kastik.apps.core.ui.placeholder
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -27,7 +25,10 @@ fun StatusContent(
             modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
-            Text(message)
+            Text(
+                text = message,
+                style = MaterialTheme.typography.titleLarge,
+            )
         }
     }
 }
@@ -60,13 +61,18 @@ fun StatusContent(
     action: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
+    Column(
+        modifier = modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier
+                .clickable { action() }
+        )
         Text(
             text = actionText,
             style = MaterialTheme.typography.bodyLarge,

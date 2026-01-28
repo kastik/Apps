@@ -31,11 +31,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AnnouncementCardShimmer() {
+fun AnnouncementCardShimmer(
+    modifier: Modifier = Modifier
+) {
     val shimmer = rememberShimmer()
 
     ElevatedCard(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(8.dp)
             .shimmer(shimmer),

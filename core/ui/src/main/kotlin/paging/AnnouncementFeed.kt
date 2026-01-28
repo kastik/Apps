@@ -1,5 +1,10 @@
 package com.kastik.apps.core.ui.paging
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -39,6 +44,12 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.flowOf
 
+private enum class FeedState {
+    Loading,
+    Error,
+    Empty,
+    Content
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -56,63 +67,111 @@ fun AnnouncementFeed(
     val vibrator = LocalHapticFeedback.current
     val analytics = LocalAnalytics.current
 
-    LazyColumn(
+
+    val currentFeedState = when {
+        refreshState is LoadState.Loading && announcements.itemCount == 0 -> FeedState.Loading
+        refreshState is LoadState.Error && announcements.itemCount == 0 -> FeedState.Error
+        refreshState is LoadState.NotLoading && announcements.itemCount == 0 -> FeedState.Empty
+        else -> FeedState.Content
+    }
+
+    AnimatedContent(
+        targetState = currentFeedState,
+        transitionSpec = {
+            fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
+        },
+        label = "feed_state_transition",
         modifier = modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .semantics { contentDescription = "announcement_feed" },
-        state = lazyListState,
-        contentPadding = contentPadding
-    ) {
-        items(
-            count = announcements.itemCount,
-            key = announcements.itemKey { it.id },
-            contentType = announcements.itemContentType { "announcement_card" }) { index ->
-            val item = announcements[index]
-            item?.let {
-                AnnouncementCard(
-                    onClick = {
-                        analytics.logEvent(
-                            "announcement_click",
-                            mapOf("announcement_id" to item.id)
-                        )
-                        vibrator.performHapticFeedback(HapticFeedbackType.Confirm)
-                        onAnnouncementClick(item.id)
-                    },
-                    onLonClick = {
-                        analytics.logEvent(
-                            "announcement_long_click",
-                            mapOf("announcement_id" to item.id)
-                        )
-                        vibrator.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onAnnouncementLongClick(item.id)
-                    },
-                    publisher = item.author,
-                    title = item.title,
-                    categories = remember(item.tags) {
-                        item.tags.map { it.title }.toImmutableList()
-                    },
-                    date = item.date,
-                    content = remember(item.preview) { item.preview.orEmpty() },
-                    isPinned = item.pinned
-                )
-            } ?: AnnouncementCardShimmer()
-        }
-        when {
-            (appendState is LoadState.Loading) && (refreshState is LoadState.NotLoading) -> item {
+    ) { state ->
+
+        when (state) {
+            FeedState.Loading -> {
                 LoadingContent(
-                    message = "Getting next page...",
-                    progressIndicatorSize = 32.dp,
-                    modifier = Modifier.padding(top = 16.dp, bottom = 32.dp),
+                    message = "Fetching Announcements...",
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
 
-            (appendState is LoadState.Error) && (refreshState is LoadState.NotLoading) -> item {
+            FeedState.Error -> {
                 StatusContent(
-                    message = "Failed to load more announcements.",
-                    action = { announcements.retry() },
-                    actionText = "Retry"
+                    message = "Something went wrong.",
+                    modifier = Modifier.fillMaxSize(),
                 )
+            }
+
+            FeedState.Empty -> {
+                StatusContent(
+                    message = "Nothing matched your search.",
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+
+            FeedState.Content -> {
+                LazyColumn(
+                    modifier = modifier
+                        .fillMaxSize()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection)
+                        .semantics { contentDescription = "announcement_feed" },
+                    state = lazyListState,
+                    contentPadding = contentPadding
+                ) {
+                    items(
+                        count = announcements.itemCount,
+                        key = announcements.itemKey { it.id },
+                        contentType = announcements.itemContentType { "announcement_card" }) { index ->
+                        val item = announcements[index]
+                        item?.let {
+                            AnnouncementCard(
+                                onClick = {
+                                    analytics.logEvent(
+                                        "announcement_click",
+                                        mapOf("announcement_id" to item.id)
+                                    )
+                                    vibrator.performHapticFeedback(HapticFeedbackType.Confirm)
+                                    onAnnouncementClick(item.id)
+                                },
+                                onLonClick = {
+                                    analytics.logEvent(
+                                        "announcement_long_click",
+                                        mapOf("announcement_id" to item.id)
+                                    )
+                                    vibrator.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onAnnouncementLongClick(item.id)
+                                },
+                                publisher = item.author,
+                                title = item.title,
+                                categories = remember(item.tags) {
+                                    item.tags.map { it.title }.toImmutableList()
+                                },
+                                date = item.date,
+                                content = remember(item.preview) { item.preview.orEmpty() },
+                                isPinned = item.pinned,
+                                modifier = Modifier.animateItem()
+                            )
+                        } ?: AnnouncementCardShimmer(
+                            modifier = Modifier.animateItem()
+                        )
+                    }
+                    when (appendState) {
+                        is LoadState.Loading -> item {
+                            LoadingContent(
+                                message = "Getting next page...",
+                                progressIndicatorSize = 32.dp,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 32.dp),
+                            )
+                        }
+
+                        is LoadState.Error -> item {
+                            StatusContent(
+                                message = "Failed to load more announcements.",
+                                action = { announcements.retry() },
+                                actionText = "Retry"
+                            )
+                        }
+
+                        else -> Unit
+                    }
+                }
             }
         }
     }

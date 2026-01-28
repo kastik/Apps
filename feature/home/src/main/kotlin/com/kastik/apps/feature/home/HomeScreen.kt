@@ -28,7 +28,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.LoadingIndicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -36,10 +35,8 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -72,8 +69,6 @@ import com.kastik.apps.core.ui.extensions.isScrollingUp
 import com.kastik.apps.core.ui.extensions.launchSignIn
 import com.kastik.apps.core.ui.extensions.shareAnnouncement
 import com.kastik.apps.core.ui.paging.AnnouncementFeed
-import com.kastik.apps.core.ui.placeholder.LoadingContent
-import com.kastik.apps.core.ui.placeholder.StatusContent
 import com.kastik.apps.core.ui.sheet.GenericFilterSheet
 import com.kastik.apps.core.ui.topbar.SearchBar
 import com.kastik.apps.core.ui.topbar.SearchBarFilters
@@ -253,9 +248,6 @@ private fun HomeScreenContent(
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
             val refreshState = homeFeedAnnouncements.loadState.refresh
-            val _ = homeFeedAnnouncements.loadState.append
-            val isEmpty by remember { derivedStateOf { homeFeedAnnouncements.itemCount == 0 } }
-
 
             PullToRefreshBox(
                 isRefreshing = refreshState is LoadState.Loading,
@@ -288,22 +280,6 @@ private fun HomeScreenContent(
                     },
                     contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding()),
                 )
-
-                if (refreshState is LoadState.Error && isEmpty) {
-                    StatusContent(
-                        message = "Failed to load.",
-                        action = { homeFeedAnnouncements.retry() },
-                        actionText = "Retry",
-                    )
-                    Text("Something went wrong")
-                }
-
-                if (refreshState is LoadState.Loading && isEmpty) {
-                    LoadingContent(
-                        modifier = Modifier.fillMaxSize(),
-                        message = "Fetching Announcements...",
-                    )
-                }
             }
         }
 

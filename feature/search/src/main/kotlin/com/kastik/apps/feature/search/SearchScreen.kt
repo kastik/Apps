@@ -23,8 +23,6 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,8 +41,6 @@ import com.kastik.apps.core.ui.extensions.LocalAnalytics
 import com.kastik.apps.core.ui.extensions.TrackScreenViewEvent
 import com.kastik.apps.core.ui.extensions.shareAnnouncement
 import com.kastik.apps.core.ui.paging.AnnouncementFeed
-import com.kastik.apps.core.ui.placeholder.LoadingContent
-import com.kastik.apps.core.ui.placeholder.StatusContent
 import com.kastik.apps.core.ui.sheet.GenericFilterSheet
 import com.kastik.apps.core.ui.topbar.SearchBar
 import com.kastik.apps.core.ui.topbar.SearchBarFilters
@@ -155,9 +151,8 @@ private fun SearchScreenContent(
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
-            val refreshState =
-                remember(searchFeedAnnouncements.loadState) { searchFeedAnnouncements.loadState.refresh }
-            val isEmpty by remember { derivedStateOf { searchFeedAnnouncements.itemCount == 0 } }
+            val refreshState = searchFeedAnnouncements.loadState.refresh
+            val isEmpty = searchFeedAnnouncements.itemCount == 0
 
             Column(
                 modifier = Modifier.fillMaxWidth()
@@ -190,21 +185,6 @@ private fun SearchScreenContent(
                     },
                     contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding()),
                 )
-
-                if (refreshState is LoadState.Error && isEmpty) {
-                    StatusContent(
-                        message = "Failed to load.",
-                        action = { searchFeedAnnouncements.retry() },
-                        actionText = "Retry",
-                    )
-                }
-
-                if (refreshState is LoadState.Loading && isEmpty) {
-                    LoadingContent(
-                        modifier = Modifier.fillMaxSize(),
-                        message = "Fetching Announcements...",
-                    )
-                }
             }
         }
 
