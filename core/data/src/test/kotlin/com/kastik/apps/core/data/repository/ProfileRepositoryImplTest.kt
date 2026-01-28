@@ -35,23 +35,8 @@ class ProfileRepositoryImplTest {
     @Before
     fun setup() {
         // Stub void methods for the mock to prevent "no answer found" errors
-        coEvery { pushNotificationsDatasource.subscribeToPushTags(any()) } just Runs
-        coEvery { pushNotificationsDatasource.unSubscribeFromPushTags() } just Runs
-    }
-
-    @Test
-    fun isSignedInReturnsFalseWhenNoProfileSaved() = runTest {
-        val result = profileRepository.isSignedIn().first()
-        assertThat(result).isFalse()
-    }
-
-    @Test
-    fun isSignedInReturnsTrueWhenProfileSaved() = runTest {
-        val profile = userProfileProtoTestData.first()
-        profileLocalDataSource.setProfile(profile)
-
-        val result = profileRepository.isSignedIn().first()
-        assertThat(result).isTrue()
+        coEvery { pushNotificationsDatasource.subscribeToTopics(any()) } just Runs
+        coEvery { pushNotificationsDatasource.unsubscribeFromAllTopics() } just Runs
     }
 
     //TODO Consider if we need to throw here instead
@@ -133,14 +118,14 @@ class ProfileRepositoryImplTest {
 
         profileRepository.subscribeToTopics(tags)
 
-        coVerify { pushNotificationsDatasource.subscribeToPushTags(tags) }
+        coVerify { pushNotificationsDatasource.subscribeToTopics(tags) }
     }
 
     @Test
     fun unsubscribeFromAllTopicsCallsPushDatasource() = runTest {
         profileRepository.unsubscribeFromAllTopics()
 
-        coVerify { pushNotificationsDatasource.unSubscribeFromPushTags() }
+        coVerify { pushNotificationsDatasource.unsubscribeFromAllTopics() }
     }
 
     @Test

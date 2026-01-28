@@ -45,6 +45,11 @@ class TokenRefreshSchedulerImpl @Inject constructor(
             request = request
         )
     }
+
+    override fun cancelRefresh() {
+        WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+    }
+
 }
 
 @HiltWorker

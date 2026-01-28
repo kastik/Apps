@@ -1,9 +1,11 @@
 package com.kastik.apps.core.data.mappers
 
 import com.google.common.truth.Truth.assertThat
+import com.kastik.apps.core.datastore.proto.QueryScope
 import com.kastik.apps.core.datastore.proto.Sort
 import com.kastik.apps.core.datastore.proto.Theme
 import com.kastik.apps.core.model.aboard.SortType
+import com.kastik.apps.core.model.user.SearchScope
 import com.kastik.apps.core.model.user.UserTheme
 import org.junit.Test
 
@@ -37,5 +39,20 @@ class PreferencesMappersTest {
         assertThat(Sort.DESC.toSortType()).isEqualTo(SortType.DESC)
         assertThat(Sort.Priority.toSortType()).isEqualTo(SortType.Priority)
         assertThat(Sort.UNRECOGNIZED.toSortType()).isEqualTo(SortType.ASC)
+    }
+
+    @Test
+    fun searchScopeMapsToQueryScope() {
+        assertThat(SearchScope.Title.toQueryScope()).isEqualTo(QueryScope.Title)
+        assertThat(SearchScope.Body.toQueryScope()).isEqualTo(QueryScope.Body)
+        assertThat(SearchScope.TitleAndBody.toQueryScope()).isEqualTo(QueryScope.TITLE_AND_BODY)
+    }
+
+    @Test
+    fun queryScopeMapsToSearchScope() {
+        assertThat(QueryScope.Title.toSearchScope()).isEqualTo(SearchScope.Title)
+        assertThat(QueryScope.Body.toSearchScope()).isEqualTo(SearchScope.Body)
+        assertThat(QueryScope.TITLE_AND_BODY.toSearchScope()).isEqualTo(SearchScope.TitleAndBody)
+        assertThat(QueryScope.UNRECOGNIZED.toSearchScope()).isEqualTo(SearchScope.Title)
     }
 }

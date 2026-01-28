@@ -8,7 +8,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 
 class AuthenticationRepositoryImplTest {
@@ -28,10 +27,18 @@ class AuthenticationRepositoryImplTest {
     @Test
     fun exchangeCodeForAboardTokenSavesResponseLocallyTest() = runTest {
         val response = aboardAuthTokenDtoTestData
-        fakeAuthenticationRemoteDataSource.setAboardAccessTokenResponse(response)
+        fakeAuthenticationRemoteDataSource.aboardAccessTokenResponse = response
         authenticationRepositoryImpl.exchangeCodeForAbroadToken("code")
         assertThat(fakeAuthenticationLocalDataSource.aboardToken.value).isEqualTo(response.accessToken)
         assertThat(fakeAuthenticationLocalDataSource.aboardTokenExpiration.value).isEqualTo(response.expiresIn)
+    }
+
+    @Test
+    fun exchangeCodeForAboardUpdatesIsSignInTest() = runTest {
+        val response = aboardAuthTokenDtoTestData
+        fakeAuthenticationRemoteDataSource.aboardAccessTokenResponse = response
+        authenticationRepositoryImpl.exchangeCodeForAbroadToken("code")
+        assertThat(fakeAuthenticationLocalDataSource.isSignedIn.value).isTrue()
     }
 
     @Test
@@ -40,38 +47,14 @@ class AuthenticationRepositoryImplTest {
         assertFailsWith<RuntimeException> {
             authenticationRepositoryImpl.exchangeCodeForAbroadToken("code")
         }
-
-        /*
-        TODO What should happen to local data when this happens?
-         We should define behaviour for the different exception eg invalid code or no network exception
-        assertThat(fakeAuthenticationLocalDataSource.savedAboardAccessToken).isEqualTo(response.accessToken)
-        assertThat(fakeAuthenticationLocalDataSource.savedAboardExpiration).isEqualTo(response.expiresIn)
-        */
-    }
-
-    @Test
-    fun checkTokenValidityReturnsFalseWhenNoTokenIssSavedTest() = runTest {
-        val result = authenticationRepositoryImpl.checkAboardTokenValidity()
-        assertThat(result).isFalse()
-    }
-
-    @Test
-    fun checkTokenValidityCallsApiWhenLocalTokenExistsTest() = runTest {
-        fakeAuthenticationRemoteDataSource.setTokenValidity(true)
-        fakeAuthenticationLocalDataSource.saveAboardToken("Token")
-        val result = authenticationRepositoryImpl.checkAboardTokenValidity()
-        assertThat(result).isTrue()
-
-        fakeAuthenticationRemoteDataSource.setTokenValidity(false)
-        fakeAuthenticationLocalDataSource.saveAboardToken("Token")
-        val newResult = authenticationRepositoryImpl.checkAboardTokenValidity()
-        assertThat(newResult).isFalse()
     }
 
     @Test
     fun getAboardTokenReturnsTokenFromDataSourceTest() = runTest {
-        fakeAuthenticationRemoteDataSource.setAboardAccessTokenResponse(aboardAuthTokenDtoTestData)
+        val response = aboardAuthTokenDtoTestData
+        fakeAuthenticationRemoteDataSource.aboardAccessTokenResponse = response
         authenticationRepositoryImpl.exchangeCodeForAbroadToken("code")
+
         val result = authenticationRepositoryImpl.getAboardToken()
         assertNotNull(result)
     }
@@ -85,23 +68,20 @@ class AuthenticationRepositoryImplTest {
     @Test
     fun getAboardTokenReturnsTokenWhenSet() = runTest {
         val token = "Token"
-        fakeAuthenticationLocalDataSource.saveAboardToken(token)
+        fakeAuthenticationLocalDataSource.setAboardAccessToken(token)
         val result = authenticationRepositoryImpl.getAboardToken()
         assertThat(result).isEqualTo(token)
     }
 
     @Test
-    fun clearTokensClearsTokensFromDataSourceTest() = runTest {
-        fakeAuthenticationRemoteDataSource.setAboardAccessTokenResponse(aboardAuthTokenDtoTestData)
+    fun clearTokensClearsLocalDataFromDataSourceTest() = runTest {
+        val response = aboardAuthTokenDtoTestData
+        fakeAuthenticationRemoteDataSource.aboardAccessTokenResponse = response
         authenticationRepositoryImpl.exchangeCodeForAbroadToken("code")
-        authenticationRepositoryImpl.clearTokens()
-        assertFalse(authenticationRepositoryImpl.checkAboardTokenValidity())
+        authenticationRepositoryImpl.clearAuthenticationData()
+        assertThat(fakeAuthenticationLocalDataSource.aboardToken.value).isNull()
+        assertThat(fakeAuthenticationLocalDataSource.aboardTokenExpiration.value).isNull()
+        assertThat(fakeAuthenticationLocalDataSource.aboardTokenLastRefreshTime.value).isNull()
+        assertThat(fakeAuthenticationLocalDataSource.isSignedIn.value).isFalse()
     }
-
-    @Test
-    fun clearTokensWhenNotLoggedInTest() = runTest {
-        authenticationRepositoryImpl.clearTokens()
-        assertFalse(authenticationRepositoryImpl.checkAboardTokenValidity())
-    }
-
 }

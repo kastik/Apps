@@ -11,6 +11,7 @@ import com.kastik.apps.core.network.model.aboard.SingleAnnouncementResponse
 import com.kastik.apps.core.network.model.aboard.SubscribableTagsDto
 import com.kastik.apps.core.network.model.aboard.SubscribedTagDto
 import com.kastik.apps.core.network.model.aboard.TagsResponseDto
+import com.kastik.apps.core.network.model.aboard.Token
 import com.kastik.apps.core.network.model.aboard.UpdateUserSubscriptionsDto
 import com.kastik.apps.core.network.model.aboard.UserProfileDto
 import com.kastik.apps.core.testing.testdata.aboardAuthTokenDtoTestData
@@ -27,12 +28,12 @@ import okhttp3.ResponseBody
 
 class FakeAboardApiClient : AboardApiClient {
 
-    private var failUserInfo = false
+    private var throwOnApiCall: Exception? = null
     private val subscribedIds = MutableStateFlow<List<Int>>(emptyList())
 
     fun getSubscribedIds(): MutableStateFlow<List<Int>> = subscribedIds
-    fun setThrowOnGetUserInfo(fail: Boolean) {
-        failUserInfo = fail
+    fun setThrowOnGetUserInfo(exception: Exception) {
+        throwOnApiCall = exception
     }
 
     override suspend fun getAnnouncements(
@@ -49,7 +50,7 @@ class FakeAboardApiClient : AboardApiClient {
 
 
     override suspend fun getAnnouncement(id: Int): SingleAnnouncementResponse {
-        announcementPageResponseTestData.forEach { page -> // Rename 'it' to 'page' for clarity
+        announcementPageResponseTestData.forEach { page ->
             page.data.forEach { announcement ->
                 if (announcement.id == id) {
                     return SingleAnnouncementResponse(data = announcement)
@@ -63,10 +64,15 @@ class FakeAboardApiClient : AboardApiClient {
         return aboardAuthTokenDtoTestData
     }
 
+    override suspend fun refreshToken(token: Token): AboardAuthTokenDto {
+        return aboardAuthTokenDtoTestData
+    }
+
     override suspend fun getUserInfo(): UserProfileDto {
-        return if (failUserInfo) {
-            throw Exception("User info failed")
-        } else userProfileDtoTestData.first()
+        throwOnApiCall?.let {
+            throw it
+        }
+        return userProfileDtoTestData.first()
     }
 
     override suspend fun getUserSubscriptions(): List<SubscribedTagDto> {

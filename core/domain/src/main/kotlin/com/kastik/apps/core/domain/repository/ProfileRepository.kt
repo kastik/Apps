@@ -11,6 +11,7 @@ interface ProfileRepository {
     suspend fun refreshEmailSubscriptions()
     suspend fun subscribeToEmailTags(tagIds: List<Int>)
     suspend fun subscribeToTopics(tagIds: List<Int>)
+    suspend fun unsubscribeFromTopics(tagIds: List<Int>)
     suspend fun unsubscribeFromAllTopics()
     suspend fun clearLocalData()
 }

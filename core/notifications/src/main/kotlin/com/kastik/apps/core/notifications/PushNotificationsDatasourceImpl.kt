@@ -6,29 +6,39 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 interface PushNotificationsDatasource {
-    suspend fun subscribeToPushTags(ids: List<Int>)
-    suspend fun unSubscribeFromPushTags()
+    suspend fun subscribeToTopics(ids: List<Int>)
+    suspend fun unsubscribeFromTopics(ids: List<Int>)
+    suspend fun unsubscribeFromAllTopics()
 }
 
 
 internal class PushNotificationsDatasourceImpl(
     private val firebaseMessaging: FirebaseMessaging
 ) : PushNotificationsDatasource {
-    override suspend fun unSubscribeFromPushTags() {
+
+    override suspend fun subscribeToTopics(ids: List<Int>) {
+        coroutineScope {
+            ids.forEach { id ->
+                launch {
+                    firebaseMessaging.subscribeToTopic(id.toString())
+                }
+            }
+        }
+    }
+
+    override suspend fun unsubscribeFromTopics(ids: List<Int>) {
+        coroutineScope {
+            ids.forEach { id ->
+                launch {
+                    firebaseMessaging.unsubscribeFromTopic(id.toString())
+                }
+            }
+        }
+    }
+
+    override suspend fun unsubscribeFromAllTopics() {
         firebaseMessaging.deleteToken().await()
         FirebaseMessaging.getInstance().token.await()
     }
 
-    override suspend fun subscribeToPushTags(ids: List<Int>) {
-        FirebaseMessaging.getInstance().deleteToken().await()
-        FirebaseMessaging.getInstance().token.await()
-        coroutineScope {
-            ids.forEach { id ->
-                launch {
-                    firebaseMessaging.subscribeToTopic(id.toString()).await()
-                }
-            }
-
-        }
-    }
 }

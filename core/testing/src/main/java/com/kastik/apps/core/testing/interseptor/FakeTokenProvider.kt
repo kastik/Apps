@@ -28,7 +28,7 @@ class FakeTokenProvider(initial: String? = null) {
     init {
         runBlocking {
             initial?.let {
-                fakeLocal.saveAboardToken(initial)
+                fakeLocal.setAboardAccessToken(initial)
             }
         }
 

@@ -48,11 +48,15 @@ internal class ProfileRepositoryImpl @Inject constructor(
     }
 
     override suspend fun subscribeToTopics(tagIds: List<Int>) = withContext(Dispatchers.IO) {
-        pushNotificationsDatasource.subscribeToPushTags(tagIds)
+        pushNotificationsDatasource.subscribeToTopics(tagIds)
+    }
+
+    override suspend fun unsubscribeFromTopics(tagIds: List<Int>) = withContext(Dispatchers.IO) {
+        pushNotificationsDatasource.unsubscribeFromTopics(tagIds)
     }
 
     override suspend fun unsubscribeFromAllTopics() = withContext(Dispatchers.IO) {
-        pushNotificationsDatasource.unSubscribeFromPushTags()
+        pushNotificationsDatasource.unsubscribeFromAllTopics()
     }
 
     override suspend fun clearLocalData() = withContext(Dispatchers.IO) {

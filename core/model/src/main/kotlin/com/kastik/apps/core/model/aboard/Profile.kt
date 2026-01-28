@@ -1,6 +1,5 @@
 package com.kastik.apps.core.model.aboard
 
-import kotlinx.collections.immutable.ImmutableList
 
 data class Profile(
     val id: Int,
@@ -13,10 +12,4 @@ data class Profile(
     val lastLoginAt: String,
     val uid: String,
     val deletedAt: String?
-)
-
-//TODO Move this out of here to a dedicated ui package
-data class UserData(
-    val profile: Profile,
-    val subscriptions: ImmutableList<Tag>
 )

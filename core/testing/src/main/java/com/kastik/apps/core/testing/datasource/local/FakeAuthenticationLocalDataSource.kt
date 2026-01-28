@@ -8,56 +8,57 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class FakeAuthenticationLocalDataSource : AuthenticationLocalDataSource {
 
+    private val _isSignedIn = MutableStateFlow(false)
+    val isSignedIn: StateFlow<Boolean> = _isSignedIn.asStateFlow()
+
     private val _aboardToken = MutableStateFlow<String?>(null)
     val aboardToken: StateFlow<String?> = _aboardToken.asStateFlow()
 
     private val _aboardTokenExpiration = MutableStateFlow<Int?>(null)
     val aboardTokenExpiration: StateFlow<Int?> = _aboardTokenExpiration.asStateFlow()
 
-    private val _appsRefreshToken = MutableStateFlow<String?>(null)
-    val refreshToken = _appsRefreshToken.asStateFlow()
+    private val _aboardTokenLastRefreshTime = MutableStateFlow<Int?>(null)
+    val aboardTokenLastRefreshTime: StateFlow<Int?> = _aboardTokenLastRefreshTime.asStateFlow()
 
-    private val _appsToken = MutableStateFlow<String?>(null)
-    val appsToken: StateFlow<String?> = _aboardToken.asStateFlow()
+    override fun getIsSignedIn(): Flow<Boolean> {
+        return isSignedIn
+    }
 
+    override fun getAboardAccessToken(): Flow<String?> = aboardToken
 
-    override fun getAboardAccessTokenFlow(): Flow<String?> = aboardToken
+    override suspend fun setAboardAccessToken(accessToken: String) {
+        _aboardToken.value = accessToken
+    }
+
+    override suspend fun setAboardTokenExpiration(expiration: Int) {
+        _aboardTokenExpiration.value = expiration
+    }
+
+    override suspend fun setAboardTokenLastRefreshTime(lastRefreshTime: Int) {
+        _aboardTokenLastRefreshTime.value = lastRefreshTime
+    }
+
+    override fun getAboardTokenExpiration(): Flow<Int?> {
+        return aboardTokenExpiration
+    }
+
+    override fun getAboardTokenLastRefreshTime(): Flow<Int?> {
+        return aboardTokenLastRefreshTime
+    }
+
+    override suspend fun setIsSignedIn(isSignedIn: Boolean) {
+        _isSignedIn.value = isSignedIn
+    }
+
+    override suspend fun clearAuthenticationData() {
+        _aboardToken.value = null
+        _aboardTokenExpiration.value = null
+        _aboardTokenLastRefreshTime.value = null
+        _isSignedIn.value = false
+    }
 
     fun emitToken(newToken: String?) {
         _aboardToken.value = newToken
     }
 
-
-    override suspend fun saveAboardToken(accessToken: String) {
-        _aboardToken.value = accessToken
-    }
-
-    override suspend fun getAboardAccessToken(): String? {
-        return _aboardToken.value
-    }
-
-    override suspend fun saveAboardTokenExpiration(expiration: Int) {
-        _aboardTokenExpiration.value = expiration
-    }
-
-    override suspend fun getAboardTokenExpiration(): Int? {
-        return _aboardTokenExpiration.value
-    }
-
-    override suspend fun clearAboardToken() {
-        _aboardToken.value = null
-        _aboardTokenExpiration.value = null
-    }
-
-    override suspend fun saveAppsTokens(accessToken: String, refreshToken: String?) {
-        _appsToken.value = accessToken
-        _appsRefreshToken.value = refreshToken
-    }
-
-    override suspend fun getAppsAccessToken(): String? = _appsToken.value
-
-    override suspend fun clearAppsToken() {
-        _appsToken.value = null
-        _appsRefreshToken.value = null
-    }
 }
